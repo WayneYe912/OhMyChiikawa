@@ -1,0 +1,24 @@
+# dependencies & build output
+node_modules/
+dist/
+out/
+
+# logs
+*.log
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+
+# Python tooling cache (tools/)
+__pycache__/
+*.pyc
+
+# Claude Code local tooling (not part of the app)
+.claude/
+
+# raw image assets — encrypted into the committed src/assets.pak (run `mybuddy pack`
+# after editing artwork). Kept out of the repo so the raw art isn't browsable.
+# Exception: the app-icon SVG is a public build asset, so it IS committed.
+src/images/*
+!src/images/mybuddy_icon_rounded.svg
