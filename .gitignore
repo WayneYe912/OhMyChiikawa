@@ -3,6 +3,9 @@ node_modules/
 dist/
 out/
 
+# local release packaging resources
+packaging/
+
 # logs
 *.log
 

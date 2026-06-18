@@ -10,7 +10,6 @@
     "start": "electron .",
     "usagi": "electron . --pet=usagi",
     "mybuddy": "node mybuddy.js",
-    "icon": "electron packaging/make-icon.js",
     "dist": "electron-builder --mac dmg --arm64 --x64"
   },
   "keywords": [
