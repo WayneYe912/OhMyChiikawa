@@ -1,16 +1,16 @@
 'use strict';
 /*
- * make-icon.js — render the app icon SVG to build/icon.png (1024x1024) using the
+ * make-icon.js — render the app icon SVG to packaging/icon.png (1024x1024) using the
  * Electron/Chromium runtime that's already installed (no extra rasteriser dep).
  * electron-builder then turns icon.png into the platform .icns/.ico automatically.
  *
- * Run via:  electron build/make-icon.js     (see `npm run icon`)
+ * Run via:  electron packaging/make-icon.js     (see `npm run icon`)
  */
 const { app, BrowserWindow } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
-const SVG = path.join(__dirname, '..', 'src', 'images', 'mybuddy_icon_rounded.svg');
+const SVG = path.join(__dirname, '..', 'assets', 'app-icon.svg');
 const OUT = path.join(__dirname, 'icon.png');
 const SIZE = 1024;
 

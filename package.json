@@ -1,7 +1,7 @@
 {
   "name": "mybuddy",
   "version": "1.0.0",
-  "description": "Cross-platform desktop pet for macOS, Windows and Linux. Ships with Usagi the rabbit.",
+  "description": "Desktop pet for macOS. Ships with usagi.",
   "main": "src/main.js",
   "bin": {
     "mybuddy": "mybuddy.js"
@@ -10,7 +10,7 @@
     "start": "electron .",
     "usagi": "electron . --pet=usagi",
     "mybuddy": "node mybuddy.js",
-    "icon": "electron build/make-icon.js",
+    "icon": "electron packaging/make-icon.js",
     "dist": "electron-builder --mac dmg --arm64 --x64"
   },
   "keywords": [
@@ -27,7 +27,7 @@
     "productName": "MyBuddy",
     "directories": {
       "output": "dist",
-      "buildResources": "build"
+      "buildResources": "packaging"
     },
     "files": [
       "src/**/*",
@@ -39,13 +39,13 @@
     },
     "mac": {
       "target": "dmg",
-      "icon": "build/icon.png",
+      "icon": "packaging/icon.png",
       "category": "public.app-category.entertainment"
     },
     "dmg": {
       "title": "MyBuddy ${version} (${arch})",
       "artifactName": "${productName}-${version}-${arch}.dmg",
-      "icon": "build/icon.png",
+      "icon": "packaging/icon.png",
       "window": {
         "width": 540,
         "height": 480
@@ -66,13 +66,13 @@
           "x": 140,
           "y": 360,
           "type": "file",
-          "path": "build/install-cli.command"
+          "path": "packaging/dmg/install-cli.command"
         },
         {
           "x": 400,
           "y": 360,
           "type": "file",
-          "path": "build/READ-ME-FIRST.txt"
+          "path": "packaging/dmg/READ-ME-FIRST.txt"
         }
       ]
     }
