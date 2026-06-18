@@ -69,7 +69,16 @@ mybuddy --scale=large
 
 ## 平台说明
 
-当前主要支持 macOS。其他系统暂未提供安装包。
+MyBuddy 目前支持 macOS，Windows 版本正在准备中。
+
+## 未来计划
+
+后续版本会陆续加入更多 Buddy 形象，并持续补充现有形象的动画表现和互动内容。
+
+下一版本计划很快发布，预计包含：
+
+- 新增 Buddy 形象「吉伊（Chiikawa）」，并加入配套基础动作。
+- 为乌萨奇在屏幕上移动时加入跑步动画，让移动表现更自然。
 
 ## 常见问题
 
@@ -168,7 +177,16 @@ mybuddy --scale=large
 
 ## Platform Notes
 
-macOS is the main supported platform. Installers for other systems are not currently provided.
+MyBuddy currently supports macOS. Windows support is in progress.
+
+## Roadmap
+
+Future releases will introduce more Buddy characters and continue expanding animations and interactions for the current characters.
+
+Planned for the next version:
+
+- Add a new Buddy character, Chiikawa, with a basic action set.
+- Add a running animation for usagi so movement across the screen feels more natural.
 
 ## FAQ
 
