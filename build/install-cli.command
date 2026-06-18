@@ -2,9 +2,10 @@
 #
 # 安装 MyBuddy 命令行工具
 # 把 `mybuddy` 命令链接到已安装的 MyBuddy.app。装好后可在终端使用:
-#   mybuddy                   启动桌面兔子
-#   mybuddy --pet=usagi-roll  无缝转手版
-#   mybuddy --scale=large     大尺寸
+#   mybuddy                 启动 MyBuddy
+#   mybuddy --scale=small   小尺寸
+#   mybuddy --scale=medium  中尺寸
+#   mybuddy --scale=large   大尺寸
 #
 set -e
 APP="/Applications/MyBuddy.app/Contents/MacOS/MyBuddy"
@@ -24,7 +25,7 @@ fi
 make_wrapper() {   # $1 = 目标路径
   cat > "$1" <<EOF
 #!/bin/sh
-# MyBuddy launcher — 后台启动已安装的 App 并透传参数 (--pet / --scale)
+# MyBuddy launcher - 后台启动已安装的 App 并透传参数
 nohup "$APP" "\$@" >/dev/null 2>&1 &
 EOF
   chmod +x "$1"
@@ -40,11 +41,10 @@ else
 fi
 
 echo ""
-echo "✅ 完成!已安装命令: mybuddy  ($DEST)"
+echo "完成! 已安装命令: mybuddy  ($DEST)"
 echo ""
 echo "用法:"
-echo "  mybuddy                              启动桌面兔子"
-echo "  mybuddy --pet=usagi-roll             无缝转手版"
+echo "  mybuddy                              启动 MyBuddy"
 echo "  mybuddy --scale=small|medium|large   切换尺寸"
 echo ""
 read -n 1 -s -r -p "按任意键关闭…"; echo
