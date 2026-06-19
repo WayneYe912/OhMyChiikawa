@@ -1,6 +1,6 @@
 {
   "name": "ohmychiikawa",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Desktop pet for macOS. Ships with usagi.",
   "main": "src/main.js",
   "bin": {
@@ -21,6 +21,10 @@
   ],
   "author": "WayneYe",
   "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "npm": ">=9"
+  },
   "build": {
     "appId": "com.ohmychiikawa.desktop",
     "productName": "OhMyChiikawa",

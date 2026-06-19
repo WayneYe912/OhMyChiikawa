@@ -21,6 +21,7 @@ const path = require('path');
 const ROOT = __dirname;
 const pkg = require(path.join(ROOT, 'package.json'));
 const SIZES = ['small', 'medium', 'large'];
+const MIN_NODE_MAJOR = 18;
 
 // Bundled pets are the files in src/pets/ minus the shared registry.
 function listPets() {
@@ -99,20 +100,48 @@ function missingDeps() {
   return names.filter((n) => !fs.existsSync(path.join(ROOT, 'node_modules', n)));
 }
 
+function checkNodeVersion() {
+  const current = process.versions.node;
+  const major = Number(current.split('.')[0]);
+  if (major >= MIN_NODE_MAJOR) return true;
+
+  console.error(`[chiikawa] Node.js ${MIN_NODE_MAJOR}+ is required. Current version: ${current}.`);
+  console.error('[chiikawa] Please install a newer Node.js release, then run `npm install` and retry.');
+  return false;
+}
+
+function checkNpmAvailable() {
+  const result = spawnSync('npm', ['--version'], { cwd: ROOT, encoding: 'utf8' });
+  if (result.status === 0) return true;
+
+  console.error('[chiikawa] npm is required to install missing dependencies, but it was not found.');
+  console.error('[chiikawa] Please install Node.js with npm, then run `npm install` in this project.');
+  if (result.error && result.error.message) {
+    console.error(`[chiikawa] Details: ${result.error.message}`);
+  }
+  return false;
+}
+
 // Make sure dependencies are present; if not, log them and run `npm install`.
 function ensureDeps() {
   let missing = missingDeps();
   if (missing.length === 0) return true;
-  console.error('[chiikawa] Missing dependencies: ' + missing.join(', '));
-  console.error('[chiikawa] Installing them now (npm install)...\n');
-  const r = spawnSync('npm install', { cwd: ROOT, stdio: 'inherit', shell: true });
+  console.error('[chiikawa] Missing project dependencies: ' + missing.join(', '));
+  console.error('[chiikawa] I will run `npm install` now. This may download packages from the npm registry.\n');
+
+  if (!checkNpmAvailable()) return false;
+
+  const r = spawnSync('npm', ['install'], { cwd: ROOT, stdio: 'inherit' });
   if (r.status !== 0) {
-    console.error('\n[chiikawa] Automatic install failed. Please run `npm install` manually and retry.');
+    console.error('\n[chiikawa] Automatic dependency installation failed.');
+    console.error('[chiikawa] Please run `npm install` manually, then retry.');
+    console.error('[chiikawa] Common causes include network issues, npm registry access, or local permission problems.');
     return false;
   }
   missing = missingDeps();
   if (missing.length) {
-    console.error('[chiikawa] Still missing after install: ' + missing.join(', ') + '. Please check manually.');
+    console.error('[chiikawa] These dependencies are still missing after `npm install`: ' + missing.join(', '));
+    console.error('[chiikawa] Please check your local Node.js/npm setup and retry.');
     return false;
   }
   console.log('[chiikawa] Dependencies ready.\n');
@@ -120,6 +149,7 @@ function ensureDeps() {
 }
 
 function start(opts) {
+  if (!checkNodeVersion()) process.exit(1);
   if (opts.size && !SIZES.includes(opts.size)) {
     console.error(`Invalid size "${opts.size}". Use one of: ${SIZES.join(', ')}`);
     process.exit(1);
@@ -132,7 +162,11 @@ function start(opts) {
   if (!ensureDeps()) process.exit(1);
   let electron;
   try { electron = require('electron'); }
-  catch (e) { console.error('Electron is not installed — run `npm install` first.'); process.exit(1); }
+  catch (e) {
+    console.error('[chiikawa] Electron is not available after dependency checks.');
+    console.error('[chiikawa] Please run `npm install` manually, then retry.');
+    process.exit(1);
+  }
 
   const args = ['.'];
   if (opts.pet) args.push('--pet=' + opts.pet);
