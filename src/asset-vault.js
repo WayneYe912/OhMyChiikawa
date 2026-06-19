@@ -1,9 +1,9 @@
 'use strict';
 /*
- * asset-vault — symmetric pack/unpack for MyBuddy's image assets.
+ * asset-vault — symmetric pack/unpack for OhMyChiikawa's image assets.
  *
  * The raw PNGs are kept out of the repository; only the encrypted `assets.pak`
- * (produced by `mybuddy pack`) is committed. The preload decrypts it at startup
+ * (produced by `chiikawa pack`) is committed. The preload decrypts it at startup
  * into in-memory data: URLs, so the app stays fully offline while the artwork
  * isn't browsable straight from the repo.
  *
@@ -12,7 +12,7 @@
  * recover the images; this just keeps them from being trivially downloaded
  * from the source tree.
  *
- * Used by both the CLI (`mybuddy pack`) and src/preload.js — keep it dependency
+ * Used by both the CLI (`chiikawa pack`) and src/preload.js — keep it dependency
  * free (Node built-ins only) so the preload can require it directly.
  */
 const crypto = require('crypto');

@@ -1,18 +1,19 @@
 /*
  * Usagi (default) — the front-standing pose: a body layer plus separate ear
  * layers and CSS eyelids, so it can blink and wiggle each ear on its own.
- * Artwork ships encrypted in src/assets.pak (rebuild with `mybuddy pack`).
+ * Artwork ships encrypted in src/assets.pak (rebuild with `chiikawa pack`).
  *
  * Double-click (or click the paws) plays the hand-rolling action as an overlay;
  * the roll frames share this same 600x910 framing so the rabbit keeps its
- * on-screen size through the switch. See --pet=usagi-roll for the seamless variant.
+ * on-screen size through the switch. The image-sequence variant is internal and
+ * only exists to keep the hand-rolling transition seamless.
  */
 (function () {
   'use strict';
   var PET = {
     id: 'usagi',
     name: 'Usagi',
-    nameZh: '兔子 Usagi',
+    nameZh: '乌萨奇',
     kind: 'image-layered',
     aspect: 600 / 910,
     natural: { w: 600, h: 910 },

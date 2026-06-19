@@ -1,15 +1,15 @@
 {
-  "name": "mybuddy",
+  "name": "ohmychiikawa",
   "version": "1.0.0",
   "description": "Desktop pet for macOS. Ships with usagi.",
   "main": "src/main.js",
   "bin": {
-    "mybuddy": "mybuddy.js"
+    "chiikawa": "chiikawa.js"
   },
   "scripts": {
     "start": "electron .",
     "usagi": "electron . --pet=usagi",
-    "mybuddy": "node mybuddy.js",
+    "chiikawa": "node chiikawa.js",
     "dist": "electron-builder --mac dmg --arm64 --x64"
   },
   "keywords": [
@@ -22,8 +22,8 @@
   "author": "WayneYe",
   "license": "MIT",
   "build": {
-    "appId": "com.mybuddy.desktop",
-    "productName": "MyBuddy",
+    "appId": "com.ohmychiikawa.desktop",
+    "productName": "OhMyChiikawa",
     "directories": {
       "output": "dist",
       "buildResources": "packaging"
@@ -42,7 +42,7 @@
       "category": "public.app-category.entertainment"
     },
     "dmg": {
-      "title": "MyBuddy ${version} (${arch})",
+      "title": "OhMyChiikawa ${version} (${arch})",
       "artifactName": "${productName}-${version}-${arch}.dmg",
       "icon": "packaging/icon.png",
       "window": {

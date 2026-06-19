@@ -1,6 +1,6 @@
 'use strict';
 /*
- * MyBuddy — renderer. Owns: layout/sizing, pointer interaction (drag vs click),
+ * OhMyChiikawa — renderer. Owns: layout/sizing, pointer interaction (drag vs click),
  * alpha-accurate click-through, and the animation compositor.
  *
  * Supports three image pet kinds:

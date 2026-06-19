@@ -1,6 +1,6 @@
 'use strict';
 /*
- * MyBuddy — desktop pet, main process.
+ * OhMyChiikawa — desktop pet, main process.
  *
  * Creates a transparent, frameless, always-on-top window that hosts the pet,
  * and provides the "physical" behaviours that only the OS layer can do:
@@ -73,7 +73,7 @@ function createWindow() {
     fullscreenable: false,
     skipTaskbar: true,
     hasShadow: false,
-    title: 'MyBuddy',
+    title: 'OhMyChiikawa',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

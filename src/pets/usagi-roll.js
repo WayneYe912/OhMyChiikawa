@@ -11,14 +11,14 @@
  * complete gesture with internal repetition: forward-facing on frame 1/idle,
  * paws roll a couple of times, then a happy finale (frame 11) before settling
  * back. The gesture loops TWICE so the hands keep rolling for ~2s per trigger.
- * Launch with:  npm start -- --pet=usagi-roll
+ * This is an internal animation variant, not a separate user-facing character.
  */
 (function () {
   'use strict';
   var PET = {
     id: 'usagi-roll',
     name: 'Usagi (roll)',
-    nameZh: '兔子 Usagi（转手版）',
+    nameZh: '乌萨奇（转手版）',
     kind: 'image-sequence',
     aspect: 600 / 910,               // re-canvased to match body.png
     natural: { w: 600, h: 910 },
