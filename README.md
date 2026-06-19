@@ -6,6 +6,12 @@
 
 OhMyChiikawa 是一个轻量的桌面宠物。启动后，**乌萨奇** 会出现在桌面上：可以拖动、点击互动、跟随鼠标、偶尔自己走动，也会在待机时眨眼和轻微摆动耳朵。
 
+## 示例
+
+| 桌面展示 | 互动动作 |
+| --- | --- |
+| ![乌萨奇桌面展示](docs/images/example_01.png) | ![乌萨奇互动动作](docs/images/example_02.png) |
+
 ## 功能
 
 - 透明、无边框、默认置顶显示。
@@ -130,6 +136,12 @@ xattr -dr com.apple.quarantine /Applications/OhMyChiikawa.app
 # OhMyChiikawa
 
 OhMyChiikawa is a lightweight desktop pet. After launch, **usagi** appears on your desktop. You can drag it around, click different body parts, let it follow the cursor, watch it wander occasionally, and see idle animations such as blinking and subtle ear movement.
+
+## Preview
+
+| Desktop view | Interaction |
+| --- | --- |
+| ![usagi desktop view](docs/images/example_01.png) | ![usagi interaction](docs/images/example_02.png) |
 
 ## Features
 
