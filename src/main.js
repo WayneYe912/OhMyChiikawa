@@ -47,7 +47,7 @@ function savePrefs() { try { fs.mkdirSync(path.dirname(PREFS_PATH), { recursive:
 const prefs = loadPrefs();
 
 // An explicit --pet on the CLI wins; otherwise restore the last chosen pet.
-let currentPet = argValue('pet', null) || prefs.pet || 'chiikawa';   // switchable from the right-click menu
+let currentPet = argValue('pet', null) || prefs.pet || 'usagi';   // switchable from the right-click menu
 let lang = (prefs.lang === 'en') ? 'en' : 'zh';   // menu & speech language (switchable, remembered)
 const t = (zh, en) => (lang === 'en' ? en : zh); // pick the current language's string
 // Per-language character names for the menu (the main process has no pet registry).

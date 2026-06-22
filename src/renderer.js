@@ -27,10 +27,10 @@
 
   // ---------- resolve pet ----------
   var params = new URLSearchParams(location.search);
-  var petId = params.get('pet') || 'chiikawa';
+  var petId = params.get('pet') || 'usagi';
   var lang = (params.get('lang') === 'en') ? 'en' : 'zh';   // UI / speech language
   var scaleH = SCALES[params.get('scale')] || SCALES.medium;
-  var pet = (window.PetRegistry && (window.PetRegistry.get(petId) || window.PetRegistry.get('chiikawa') || window.PetRegistry.get('usagi')));
+  var pet = (window.PetRegistry && (window.PetRegistry.get(petId) || window.PetRegistry.get('usagi')));
   if (!pet) { document.body.textContent = 'No pet registered.'; return; }
   var isLayered = pet.kind === 'image-layered';
   var isSeq = pet.kind === 'image-sequence';
