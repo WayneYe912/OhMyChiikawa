@@ -129,7 +129,7 @@ xattr -dr com.apple.quarantine /Applications/OhMyChiikawa.app
 
 项目代码使用 MIT License。
 
-项目内的「吉伊（Chiikawa）」和「乌萨奇」形象均来自日本动画《Chiikawa》，形象版权归属 Chiikawa。内置图片仅用于个人桌面宠物使用；替换或分发图片时，请确保你拥有对应使用权。
+项目内的「吉伊（Chiikawa）」和「乌萨奇（Usagi）」形象均来自日本动画《Chiikawa》，形象版权归属 Chiikawa。内置图片仅用于个人桌面宠物使用；替换或分发图片时，请确保你拥有对应使用权。
 
 ***
 
@@ -264,4 +264,4 @@ Right-click usagi and choose the quit menu item.
 
 Project code is licensed under the MIT License.
 
-The characters in this project, Chiikawa and usagi, come from the Japanese animation Chiikawa. The character copyright belongs to Chiikawa. Bundled image assets are for personal desktop-pet use; make sure you have the right to use any assets you replace or redistribute.
+The characters in this project, Chiikawa and Usagi, come from the Japanese animation Chiikawa. The character copyright belongs to Chiikawa. Bundled image assets are for personal desktop-pet use; make sure you have the right to use any assets you replace or redistribute.
