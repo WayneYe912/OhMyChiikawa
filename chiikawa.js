@@ -43,20 +43,33 @@ function walk(dir) {
 
 // Encrypt every image under src/images/ into the committed src/assets.pak.
 // Run this after changing artwork; the raw PNGs stay out of the repo.
+//
+// IMPORTANT: this MERGES into the existing pak rather than rebuilding from
+// scratch. Some pets' raw art (e.g. usagi) is never checked out to src/images/,
+// so a from-scratch rebuild would silently drop them. We start from the current
+// pak and let on-disk images add to / overwrite it, preserving art that only
+// lives inside the pak.
 function pack() {
   const vault = require(path.join(ROOT, 'src', 'asset-vault'));
   const SRC = path.join(ROOT, 'src');
   const imgDir = path.join(SRC, 'images');
+  const pakPath = path.join(SRC, 'assets.pak');
   if (!fs.existsSync(imgDir)) { console.error('No src/images/ to pack.'); process.exit(1); }
+  // Seed from the existing pak so pet art that isn't on disk is preserved.
+  let bundle = {};
+  if (fs.existsSync(pakPath)) {
+    try { bundle = JSON.parse(vault.decrypt(fs.readFileSync(pakPath)).toString('utf8')); }
+    catch (e) { console.error('[chiikawa] Warning: could not read existing assets.pak; rebuilding from disk only.'); bundle = {}; }
+  }
+  const kept = Object.keys(bundle).length;
   const files = walk(imgDir).filter((f) => /\.(png|gif|jpe?g)$/i.test(f)).sort();
-  const bundle = {};
   for (const f of files) {
     const rel = path.relative(SRC, f).split(path.sep).join('/'); // e.g. images/usagi/body.png
     bundle[rel] = fs.readFileSync(f).toString('base64');
   }
   const enc = vault.encrypt(Buffer.from(JSON.stringify(bundle)));
-  fs.writeFileSync(path.join(SRC, 'assets.pak'), enc);
-  console.log(`packed ${files.length} asset(s) -> src/assets.pak (${(enc.length / 1024).toFixed(0)} KB)`);
+  fs.writeFileSync(pakPath, enc);
+  console.log(`packed ${files.length} disk asset(s); pak now holds ${Object.keys(bundle).length} (kept ${kept} existing) -> src/assets.pak (${(enc.length / 1024).toFixed(0)} KB)`);
 }
 
 function help() {

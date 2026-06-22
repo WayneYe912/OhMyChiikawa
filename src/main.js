@@ -40,7 +40,23 @@ function argValue(name, fallback) {
   const hit = process.argv.find((a) => a.startsWith(pre));
   return hit ? hit.slice(pre.length) : fallback;
 }
-const START_PET = argValue('pet', 'usagi');
+// Persisted preferences — remembers the last chosen pet across launches.
+const PREFS_PATH = path.join(app.getPath('userData'), 'prefs.json');
+function loadPrefs() { try { return JSON.parse(fs.readFileSync(PREFS_PATH, 'utf8')); } catch (e) { return {}; } }
+function savePrefs() { try { fs.mkdirSync(path.dirname(PREFS_PATH), { recursive: true }); fs.writeFileSync(PREFS_PATH, JSON.stringify(prefs)); } catch (e) {} }
+const prefs = loadPrefs();
+
+// An explicit --pet on the CLI wins; otherwise restore the last chosen pet.
+let currentPet = argValue('pet', null) || prefs.pet || 'chiikawa';   // switchable from the right-click menu
+let lang = (prefs.lang === 'en') ? 'en' : 'zh';   // menu & speech language (switchable, remembered)
+const t = (zh, en) => (lang === 'en' ? en : zh); // pick the current language's string
+// Per-language character names for the menu (the main process has no pet registry).
+const PET_LABELS = {
+  usagi: { zh: '乌萨奇', en: 'Usagi' },
+  chiikawa: { zh: '吉伊', en: 'Chiikawa' }
+};
+const ROLL_PETS = new Set(['usagi']);           // pets that have the hand-roll action
+const petLabel = (id) => (PET_LABELS[id] ? PET_LABELS[id][lang] : id);
 const SCALES = { small: 150, medium: 200, large: 270 }; // pet display height (px)
 let scaleName = argValue('scale', 'medium');
 if (!SCALES[scaleName]) scaleName = 'medium';
@@ -88,7 +104,7 @@ function createWindow() {
   try { win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true }); } catch (e) {}
 
   // loadFile handles platform path differences (Windows backslashes etc.)
-  win.loadFile(path.join(__dirname, 'index.html'), { query: { pet: START_PET, scale: scaleName } });
+  win.loadFile(path.join(__dirname, 'index.html'), { query: { pet: currentPet, scale: scaleName, lang } });
 
   // start click-through; the renderer turns it off while the cursor is on the pet
   win.setIgnoreMouseEvents(true, { forward: true });
@@ -156,37 +172,74 @@ ipcMain.on('hit:ignore', (_e, ignore) => {
 ipcMain.on('pet:fit', (_e, size) => fitWindow(size.w, size.h));
 ipcMain.on('pet:quit', () => app.quit());
 
+// Swap the displayed pet by reloading the page with a new ?pet=. Cheap and robust:
+// the renderer rebuilds all layers for the new artwork on load. The cursor-follow
+// and wander timers live here in the main process, so they survive the reload.
+function switchPet(id) {
+  if (!win || id === currentPet || !PET_LABELS[id]) return;
+  currentPet = id;
+  prefs.pet = id; savePrefs();
+  win.loadFile(path.join(__dirname, 'index.html'), { query: { pet: currentPet, scale: scaleName, lang } });
+}
+
+// Switch the menu / speech language. The menu rebuilds on next open; the renderer
+// updates its speech lines live over IPC (no reload needed).
+function setLang(l) {
+  l = (l === 'en') ? 'en' : 'zh';
+  if (l === lang) return;
+  lang = l;
+  prefs.lang = lang; savePrefs();
+  if (win) win.webContents.send('pet:lang', lang);
+}
+
 // ---------- context menu ----------
 ipcMain.on('menu:open', () => {
   if (!win) return;
   const tmpl = [
-    { label: 'Usagi', enabled: false },
+    { label: petLabel(currentPet), enabled: false },
     { type: 'separator' },
     {
-      label: '跟随鼠标  Follow cursor', type: 'checkbox', checked: settings.follow,
+      label: t('角色', 'Character'),
+      submenu: Object.keys(PET_LABELS).map((id) => ({
+        label: petLabel(id), type: 'radio', checked: currentPet === id,
+        click: () => switchPet(id)
+      }))
+    },
+    {
+      label: t('语言', 'Language'),
+      submenu: [
+        { label: '中文', type: 'radio', checked: lang === 'zh', click: () => setLang('zh') },
+        { label: 'English', type: 'radio', checked: lang === 'en', click: () => setLang('en') }
+      ]
+    },
+    { type: 'separator' },
+    {
+      label: t('跟随鼠标', 'Follow cursor'), type: 'checkbox', checked: settings.follow,
       click: () => { settings.follow = !settings.follow; if (settings.follow) startLook(); else stopLook(); }
     },
     {
-      label: '四处走动  Wander', type: 'checkbox', checked: settings.wander,
+      label: t('四处走动', 'Wander'), type: 'checkbox', checked: settings.wander,
       click: () => { settings.wander = !settings.wander; if (settings.wander) scheduleWalk(); else stopWalk(); }
     },
     {
-      label: '总在最前  Always on top', type: 'checkbox', checked: settings.onTop,
+      label: t('总在最前', 'Always on top'), type: 'checkbox', checked: settings.onTop,
       click: () => { settings.onTop = !settings.onTop; applyOnTop(); }
     },
     { type: 'separator' },
     {
-      label: '大小  Size',
+      label: t('大小', 'Size'),
       submenu: ['small', 'medium', 'large'].map((s) => ({
-        label: { small: '小 Small', medium: '中 Medium', large: '大 Large' }[s],
+        label: { small: t('小', 'Small'), medium: t('中', 'Medium'), large: t('大', 'Large') }[s],
         type: 'radio', checked: scaleName === s,
         click: () => { scaleName = s; if (win) win.webContents.send('scale:set', SCALES[s]); }
       }))
     },
-    { label: '跳一下  Hop', click: () => win && win.webContents.send('pet:react', 'hop') },
-    { label: '转手  Roll hands', click: () => win && win.webContents.send('pet:react', 'roll') },
+    { label: t('跳一下', 'Hop'), click: () => win && win.webContents.send('pet:react', 'hop') },
+    ...(ROLL_PETS.has(currentPet)
+      ? [{ label: t('转手', 'Roll hands'), click: () => win && win.webContents.send('pet:react', 'roll') }]
+      : []),
     { type: 'separator' },
-    { label: '退出  Quit Usagi', click: () => app.quit() }
+    { label: t('退出', 'Quit') + ' ' + petLabel(currentPet), click: () => app.quit() }
   ];
   Menu.buildFromTemplate(tmpl).popup({ window: win });
 });

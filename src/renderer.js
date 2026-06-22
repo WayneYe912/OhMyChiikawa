@@ -27,9 +27,10 @@
 
   // ---------- resolve pet ----------
   var params = new URLSearchParams(location.search);
-  var petId = params.get('pet') || 'usagi';
+  var petId = params.get('pet') || 'chiikawa';
+  var lang = (params.get('lang') === 'en') ? 'en' : 'zh';   // UI / speech language
   var scaleH = SCALES[params.get('scale')] || SCALES.medium;
-  var pet = (window.PetRegistry && (window.PetRegistry.get(petId) || window.PetRegistry.get('usagi')));
+  var pet = (window.PetRegistry && (window.PetRegistry.get(petId) || window.PetRegistry.get('chiikawa') || window.PetRegistry.get('usagi')));
   if (!pet) { document.body.textContent = 'No pet registered.'; return; }
   var isLayered = pet.kind === 'image-layered';
   var isSeq = pet.kind === 'image-sequence';
@@ -178,7 +179,7 @@
   // ---------- layout / window sizing ----------
   var box = { left: 0, top: 0, w: 0, h: 0, winW: 0, winH: 0 };
   function layout() {
-    var petH = scaleH, petW = Math.round(petH * (pet.aspect || 0.66));
+    var petH = Math.round(scaleH * (pet.renderScale || 1)), petW = Math.round(petH * (pet.aspect || 0.66));
     var topPad = Math.round(petH * PAD.top), botPad = Math.round(petH * PAD.bottom), sidePad = Math.round(petW * PAD.side);
     box.w = petW; box.h = petH; box.left = sidePad; box.top = topPad;
     box.winW = petW + sidePad * 2; box.winH = petH + topPad + botPad;
@@ -267,8 +268,21 @@
   }
 
   // ---------- speech bubble ----------
-  var SPEECH = ['哈？', '呀哈', '乌拉！', '乌拉呀哈呀啦呜哈～', '呀哈呀哈', '哈！'];
-  var ROLL_LINE = '噜噜噜噜噜！';   // fixed line while the hand-rolling action plays
+  // Per-language speech. A pet may provide pet.speech as {zh:[],en:[]} (or a plain
+  // array = language-neutral); the defaults below are usagi's lines. SPEECH and
+  // ROLL_LINE are refreshed by applyLang() on load and on a live language switch.
+  var DEFAULT_SPEECH = {
+    zh: ['哈？', '呀哈', '乌拉！', '乌拉呀哈呀啦呜哈～', '呀哈呀哈', '哈！'],
+    en: ['Ha?', 'Yaha', 'Ura!', 'Ura yaha yara wuha~', 'Yaha yaha', 'Ha!']
+  };
+  var ROLL_LINES = { zh: '噜噜噜噜噜！', en: 'Rurururu!' };   // fixed line while rolling
+  var SPEECH, ROLL_LINE;
+  function applyLang() {
+    var s = pet.speech || DEFAULT_SPEECH;
+    SPEECH = Array.isArray(s) ? s : (s[lang] || s.zh || DEFAULT_SPEECH[lang]);
+    ROLL_LINE = ROLL_LINES[lang] || ROLL_LINES.zh;
+  }
+  applyLang();
   var speechTimer = null;
   function say(text, ms) {
     if (!speechEl) return;
@@ -422,5 +436,6 @@
     window.petAPI.onWalk(function (v) { anim.walking = true; anim.walkDir = v.dir; anim.facing = v.dir < 0 ? -1 : 1; });
     window.petAPI.onWalkStop(function () { anim.walking = false; anim.facing = 1; });
     window.petAPI.onScale(function (h) { scaleH = h; layout(); });
+    window.petAPI.onLang(function (l) { lang = (l === 'en') ? 'en' : 'zh'; applyLang(); });
   }
 })();
