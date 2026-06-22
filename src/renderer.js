@@ -466,7 +466,7 @@
   if (window.petAPI) {
     window.petAPI.onReact(function (type) { react(type); });
     window.petAPI.onLook(function (v) { anim.look.dx = v.dx; anim.look.dy = v.dy; });
-    window.petAPI.onWalk(function (v) { anim.walking = true; anim.walkDir = v.dir; anim.facing = v.dir < 0 ? -1 : 1; startRun(); });
+    window.petAPI.onWalk(function (v) { anim.walking = true; anim.walkDir = v.dir; anim.facing = v.dir < 0 ? 1 : -1; startRun(); });
     window.petAPI.onWalkStop(function () { anim.walking = false; anim.facing = 1; stopRun(); });
     window.petAPI.onScale(function (h) { scaleH = h; layout(); });
     window.petAPI.onLang(function (l) { lang = (l === 'en') ? 'en' : 'zh'; applyLang(); });

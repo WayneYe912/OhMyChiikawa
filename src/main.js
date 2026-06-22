@@ -275,13 +275,19 @@ function startWalk() {
   if (!win || dragging || !settings.wander) { scheduleWalk(); return; }
   const b = win.getBounds();
   const area = screen.getDisplayNearestPoint({ x: b.x + b.width / 2, y: b.y + b.height / 2 }).workArea;
-  const dir = Math.random() < 0.5 ? -1 : 1;
+  // Prefer a direction that actually has room, so the pet doesn't "run" in place
+  // against a screen edge (which made it look like only one direction animated).
+  const roomLeft = b.x - area.x;
+  const roomRight = (area.x + area.width - b.width) - b.x;
+  let dir = Math.random() < 0.5 ? -1 : 1;
+  if (dir === 1 && roomRight < 60) dir = -1;
+  else if (dir === -1 && roomLeft < 60) dir = 1;
   const distance = 80 + Math.random() * 220;
   let targetX = b.x + dir * distance;
   targetX = Math.min(Math.max(targetX, area.x), area.x + area.width - b.width);
   const realDir = targetX >= b.x ? 1 : -1;
   win.webContents.send('pet:walk', { dir: realDir });
-  const speed = 1; // px per tick (~62 px/s at 16ms)
+  const speed = 2; // px per tick (~125 px/s at 16ms) — 2x the original walk speed
   clearInterval(walkTimer);
   walkTimer = setInterval(() => {
     if (!win || dragging) { stopWalk(); return; }
