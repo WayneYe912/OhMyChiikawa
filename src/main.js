@@ -56,6 +56,7 @@ const PET_LABELS = {
   chiikawa: { zh: '吉伊', en: 'Chiikawa' }
 };
 const ROLL_PETS = new Set(['usagi']);           // pets that have the hand-roll action
+const PET_SPEED = { usagi: 3, chiikawa: 2 };    // walk speed px/tick (16ms); default 2
 const petLabel = (id) => (PET_LABELS[id] ? PET_LABELS[id][lang] : id);
 const SCALES = { small: 150, medium: 200, large: 270 }; // pet display height (px)
 let scaleName = argValue('scale', 'medium');
@@ -287,7 +288,7 @@ function startWalk() {
   targetX = Math.min(Math.max(targetX, area.x), area.x + area.width - b.width);
   const realDir = targetX >= b.x ? 1 : -1;
   win.webContents.send('pet:walk', { dir: realDir });
-  const speed = 2; // px per tick (~125 px/s at 16ms) — 2x the original walk speed
+  const speed = PET_SPEED[currentPet] || 2; // usagi runs faster (it has a real run cycle)
   clearInterval(walkTimer);
   walkTimer = setInterval(() => {
     if (!win || dragging) { stopWalk(); return; }

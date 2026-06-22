@@ -384,7 +384,10 @@
       rot += anim.lookCur.x * 3.2; txp += anim.lookCur.x * 3.0; ty += anim.lookCur.y * 2.0;
     }
 
-    if (anim.walking) {
+    // Walk bob/sway is the "fake" locomotion for pets WITHOUT a run animation
+    // (e.g. chiikawa). A pet playing a real run cycle (running) skips it, so the
+    // frames alone convey the motion — no extra left/right wobble.
+    if (anim.walking && !running) {
       anim.walkPhase += 0.28;
       ty += -Math.abs(Math.sin(anim.walkPhase)) * (petH * 0.035);
       rot += Math.sin(anim.walkPhase) * 2.2 + anim.walkDir * 1.5;
