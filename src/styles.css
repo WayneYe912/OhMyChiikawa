@@ -35,6 +35,15 @@ html, body, #stage, #layer-move, #layer-tilt, #layer-breathe, #pet-content { poi
 #pet-content.acting > .layered,
 #pet-content.acting > img.pet-main { visibility: hidden; }
 
+/* ---------- run-cycle overlay (looping frames while walking) ---------- */
+#pet-content img.run-img {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  height: 100%; width: auto; display: none; -webkit-user-drag: none;
+}
+#pet-content.running > img.run-img { display: block; }
+#pet-content.running > .layered,
+#pet-content.running > img.pet-main { visibility: hidden; }
+
 /* ---------- layered image pet (body + ear layers + eyelids) ---------- */
 .layered { position: absolute; inset: 0; }
 .layered .part { position: absolute; }

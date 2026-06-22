@@ -28,6 +28,7 @@
   // ---------- resolve pet ----------
   var params = new URLSearchParams(location.search);
   var petId = params.get('pet') || 'usagi';
+  var lang = (params.get('lang') === 'en') ? 'en' : 'zh';   // UI / speech language
   var scaleH = SCALES[params.get('scale')] || SCALES.medium;
   var pet = (window.PetRegistry && (window.PetRegistry.get(petId) || window.PetRegistry.get('usagi')));
   if (!pet) { document.body.textContent = 'No pet registered.'; return; }
@@ -139,6 +140,39 @@
   var actionImg = document.createElement('img');
   actionImg.className = 'action-img'; actionImg.draggable = false;
   contentEl.appendChild(actionImg);
+
+  // ---------- run cycle (looping frames shown while the pet walks) ----------
+  // A pet may define pet.walk = { base, count, pad, ext, start, fps }. The frames
+  // share the action-overlay framing (bottom-anchored, height:100%, width:auto),
+  // so they stay the same on-screen height as the standing pose. Left/right facing
+  // is handled by the existing #layer-move flip (anim.facing), so the run art only
+  // needs one direction.
+  var runImg = document.createElement('img');
+  runImg.className = 'run-img'; runImg.draggable = false;
+  contentEl.appendChild(runImg);
+  var runFrames = [];
+  if (pet.walk) {
+    for (var rf = 0; rf < pet.walk.count; rf++) {
+      var rim = new Image();
+      rim.src = assetURL(pet.walk.base + String(rf + (pet.walk.start || 0)).padStart(pet.walk.pad || 2, '0') + pet.walk.ext);
+      runFrames.push(rim);
+    }
+  }
+  var running = false, runTimer = null, runIdx = 0;
+  function startRun() {
+    if (!pet.walk || running || acting) return;
+    running = true; runIdx = 0; contentEl.classList.add('running');
+    var fps = pet.walk.fps || 9;
+    (function step() {
+      runImg.src = runFrames[runIdx % pet.walk.count].src; runIdx++;
+      runTimer = setTimeout(step, 1000 / fps);
+    })();
+  }
+  function stopRun() {
+    if (!running) return;
+    running = false; clearTimeout(runTimer); contentEl.classList.remove('running');
+  }
+
   var actionFrames = {};
   if (pet.actions && !isSeq) { // overlay-style actions (image-layered); seq uses its own frames
     Object.keys(pet.actions).forEach(function (name) {
@@ -154,7 +188,7 @@
   var acting = false, actTimer = null;
   function playAction(name) {
     var a = pet.actions && pet.actions[name];
-    if (!a || acting || anim.dragging) return;
+    if (!a || acting || anim.dragging || running) return;
     acting = true; document.body.classList.remove('is-blink');
     if (name === 'roll') say(ROLL_LINE, 2000);   // the rabbit chants while rolling its paws
     if (isSeq) { // play the pet's own frames in place -> seamless (idle frame == frame 0)
@@ -178,7 +212,7 @@
   // ---------- layout / window sizing ----------
   var box = { left: 0, top: 0, w: 0, h: 0, winW: 0, winH: 0 };
   function layout() {
-    var petH = scaleH, petW = Math.round(petH * (pet.aspect || 0.66));
+    var petH = Math.round(scaleH * (pet.renderScale || 1)), petW = Math.round(petH * (pet.aspect || 0.66));
     var topPad = Math.round(petH * PAD.top), botPad = Math.round(petH * PAD.bottom), sidePad = Math.round(petW * PAD.side);
     box.w = petW; box.h = petH; box.left = sidePad; box.top = topPad;
     box.winW = petW + sidePad * 2; box.winH = petH + topPad + botPad;
@@ -267,8 +301,21 @@
   }
 
   // ---------- speech bubble ----------
-  var SPEECH = ['哈？', '呀哈', '乌拉！', '乌拉呀哈呀啦呜哈～', '呀哈呀哈', '哈！'];
-  var ROLL_LINE = '噜噜噜噜噜！';   // fixed line while the hand-rolling action plays
+  // Per-language speech. A pet may provide pet.speech as {zh:[],en:[]} (or a plain
+  // array = language-neutral); the defaults below are usagi's lines. SPEECH and
+  // ROLL_LINE are refreshed by applyLang() on load and on a live language switch.
+  var DEFAULT_SPEECH = {
+    zh: ['哈？', '呀哈', '乌拉！', '乌拉呀哈呀啦呜哈～', '呀哈呀哈', '哈！'],
+    en: ['Ha?', 'Yaha', 'Ura!', 'Ura yaha yara wuha~', 'Yaha yaha', 'Ha!']
+  };
+  var ROLL_LINES = { zh: '噜噜噜噜噜！', en: 'Rurururu!' };   // fixed line while rolling
+  var SPEECH, ROLL_LINE;
+  function applyLang() {
+    var s = pet.speech || DEFAULT_SPEECH;
+    SPEECH = Array.isArray(s) ? s : (s[lang] || s.zh || DEFAULT_SPEECH[lang]);
+    ROLL_LINE = ROLL_LINES[lang] || ROLL_LINES.zh;
+  }
+  applyLang();
   var speechTimer = null;
   function say(text, ms) {
     if (!speechEl) return;
@@ -337,7 +384,10 @@
       rot += anim.lookCur.x * 3.2; txp += anim.lookCur.x * 3.0; ty += anim.lookCur.y * 2.0;
     }
 
-    if (anim.walking) {
+    // Walk bob/sway is the "fake" locomotion for pets WITHOUT a run animation
+    // (e.g. chiikawa). A pet playing a real run cycle (running) skips it, so the
+    // frames alone convey the motion — no extra left/right wobble.
+    if (anim.walking && !running) {
       anim.walkPhase += 0.28;
       ty += -Math.abs(Math.sin(anim.walkPhase)) * (petH * 0.035);
       rot += Math.sin(anim.walkPhase) * 2.2 + anim.walkDir * 1.5;
@@ -419,8 +469,9 @@
   if (window.petAPI) {
     window.petAPI.onReact(function (type) { react(type); });
     window.petAPI.onLook(function (v) { anim.look.dx = v.dx; anim.look.dy = v.dy; });
-    window.petAPI.onWalk(function (v) { anim.walking = true; anim.walkDir = v.dir; anim.facing = v.dir < 0 ? -1 : 1; });
-    window.petAPI.onWalkStop(function () { anim.walking = false; anim.facing = 1; });
+    window.petAPI.onWalk(function (v) { anim.walking = true; anim.walkDir = v.dir; anim.facing = v.dir < 0 ? 1 : -1; startRun(); });
+    window.petAPI.onWalkStop(function () { anim.walking = false; anim.facing = 1; stopRun(); });
     window.petAPI.onScale(function (h) { scaleH = h; layout(); });
+    window.petAPI.onLang(function (l) { lang = (l === 'en') ? 'en' : 'zh'; applyLang(); });
   }
 })();
