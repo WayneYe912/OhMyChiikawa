@@ -35,7 +35,10 @@
     // 11 frames / 11 fps x 2 loops = 2.0s playback (the hands roll for ~2s).
     actions: {
       roll: { base: 'images/usagi_roll/usagi_roll_', count: 11, pad: 2, ext: '.png', start: 1, fps: 11, loops: 2 }
-    }
+    },
+    // Run cycle played while walking across the screen (6 frames re-canvased to a
+    // shared 735x960 framing, background removed). Facing is flipped by the renderer.
+    walk: { base: 'images/usagi_run/usagi_run_', count: 6, pad: 2, ext: '.png', start: 1, fps: 9 }
   };
   var api = (typeof window !== 'undefined') ? window : globalThis;
   api.PetRegistry = api.PetRegistry || {

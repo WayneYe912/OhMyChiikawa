@@ -140,6 +140,39 @@
   var actionImg = document.createElement('img');
   actionImg.className = 'action-img'; actionImg.draggable = false;
   contentEl.appendChild(actionImg);
+
+  // ---------- run cycle (looping frames shown while the pet walks) ----------
+  // A pet may define pet.walk = { base, count, pad, ext, start, fps }. The frames
+  // share the action-overlay framing (bottom-anchored, height:100%, width:auto),
+  // so they stay the same on-screen height as the standing pose. Left/right facing
+  // is handled by the existing #layer-move flip (anim.facing), so the run art only
+  // needs one direction.
+  var runImg = document.createElement('img');
+  runImg.className = 'run-img'; runImg.draggable = false;
+  contentEl.appendChild(runImg);
+  var runFrames = [];
+  if (pet.walk) {
+    for (var rf = 0; rf < pet.walk.count; rf++) {
+      var rim = new Image();
+      rim.src = assetURL(pet.walk.base + String(rf + (pet.walk.start || 0)).padStart(pet.walk.pad || 2, '0') + pet.walk.ext);
+      runFrames.push(rim);
+    }
+  }
+  var running = false, runTimer = null, runIdx = 0;
+  function startRun() {
+    if (!pet.walk || running || acting) return;
+    running = true; runIdx = 0; contentEl.classList.add('running');
+    var fps = pet.walk.fps || 9;
+    (function step() {
+      runImg.src = runFrames[runIdx % pet.walk.count].src; runIdx++;
+      runTimer = setTimeout(step, 1000 / fps);
+    })();
+  }
+  function stopRun() {
+    if (!running) return;
+    running = false; clearTimeout(runTimer); contentEl.classList.remove('running');
+  }
+
   var actionFrames = {};
   if (pet.actions && !isSeq) { // overlay-style actions (image-layered); seq uses its own frames
     Object.keys(pet.actions).forEach(function (name) {
@@ -155,7 +188,7 @@
   var acting = false, actTimer = null;
   function playAction(name) {
     var a = pet.actions && pet.actions[name];
-    if (!a || acting || anim.dragging) return;
+    if (!a || acting || anim.dragging || running) return;
     acting = true; document.body.classList.remove('is-blink');
     if (name === 'roll') say(ROLL_LINE, 2000);   // the rabbit chants while rolling its paws
     if (isSeq) { // play the pet's own frames in place -> seamless (idle frame == frame 0)
@@ -433,8 +466,8 @@
   if (window.petAPI) {
     window.petAPI.onReact(function (type) { react(type); });
     window.petAPI.onLook(function (v) { anim.look.dx = v.dx; anim.look.dy = v.dy; });
-    window.petAPI.onWalk(function (v) { anim.walking = true; anim.walkDir = v.dir; anim.facing = v.dir < 0 ? -1 : 1; });
-    window.petAPI.onWalkStop(function () { anim.walking = false; anim.facing = 1; });
+    window.petAPI.onWalk(function (v) { anim.walking = true; anim.walkDir = v.dir; anim.facing = v.dir < 0 ? -1 : 1; startRun(); });
+    window.petAPI.onWalkStop(function () { anim.walking = false; anim.facing = 1; stopRun(); });
     window.petAPI.onScale(function (h) { scaleH = h; layout(); });
     window.petAPI.onLang(function (l) { lang = (l === 'en') ? 'en' : 'zh'; applyLang(); });
   }
