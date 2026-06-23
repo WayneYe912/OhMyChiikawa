@@ -3,8 +3,14 @@ node_modules/
 dist/
 out/
 
-# local release packaging resources
-packaging/
+# local release packaging resources — scripts and text files are tracked;
+# binary assets (icons, images) should be placed here locally before building.
+packaging/icon.png
+packaging/icon.ico
+packaging/icon.icns
+packaging/*.png
+packaging/*.ico
+packaging/*.icns
 
 # logs
 *.log

@@ -1,7 +1,7 @@
 {
   "name": "ohmychiikawa",
   "version": "0.0.1",
-  "description": "Desktop pet for macOS. Ships with usagi.",
+  "description": "Desktop pet for macOS & Windows. Ships with usagi.",
   "main": "src/main.js",
   "bin": {
     "chiikawa": "chiikawa.js"
@@ -10,7 +10,11 @@
     "start": "electron .",
     "usagi": "electron . --pet=usagi",
     "chiikawa": "node chiikawa.js",
-    "dist": "electron-builder --mac dmg --arm64 --x64"
+    "dist": "electron-builder --mac dmg --arm64 --x64",
+    "dist:mac": "electron-builder --mac dmg --arm64 --x64",
+    "dist:win": "electron-builder --win",
+    "dist:win:nsis": "electron-builder --win nsis --x64",
+    "dist:win:portable": "electron-builder --win portable --x64"
   },
   "keywords": [
     "desktop-pet",
@@ -35,7 +39,16 @@
     "files": [
       "src/**/*",
       "!src/images/**",
+      "chiikawa.js",
+      "chiikawa.cmd",
+      "chiikawa.ps1",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "packaging/win",
+        "to": "packaging/win"
+      }
     ],
     "extraMetadata": {
       "main": "src/main.js"
@@ -78,6 +91,34 @@
           "path": "packaging/dmg/READ-ME-FIRST.txt"
         }
       ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "packaging/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "OhMyChiikawa",
+      "artifactName": "${productName}-${version}-win-x64.${ext}",
+      "installerIcon": "packaging/icon.ico",
+      "uninstallerIcon": "packaging/icon.ico",
+      "installerHeaderIcon": "packaging/icon.ico",
+      "include": "packaging/nsis/install-cli.nsh"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-portable-x64.${ext}"
     }
   },
   "devDependencies": {
