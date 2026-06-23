@@ -1,0 +1,13 @@
+# Windows batch launchers must use CRLF line endings, otherwise cmd.exe
+# misparses label/goto control flow (setlocal, :parse, :help, etc.).
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# NSIS scripts are consumed by makensis on Windows; keep them CRLF too.
+*.nsh text eol=crlf
+*.nsi text eol=crlf
+
+# Shell scripts must stay LF, otherwise the shebang breaks on macOS/Linux
+# (e.g. the DMG's install-cli.command).
+*.sh text eol=lf
+*.command text eol=lf

@@ -67,18 +67,17 @@ chiikawa --scale=large
 2. 双击安装包，按照安装向导完成安装。
 3. 安装完成后，从开始菜单或桌面快捷方式启动 **OhMyChiikawa**。
 
-安装目录中包含两个辅助文件：
-
-- `READ-ME-FIRST.txt`：安装和首次打开说明。
-- `install-cli.bat`：命令行启动器安装脚本。双击它可以将 `chiikawa` 命令添加到系统 PATH。
-
-如果你希望从命令行启动，请先运行安装目录中的 `install-cli.bat`，之后打开**新的**命令提示符或 PowerShell 窗口，即可使用：
+安装过程中，安装向导会询问是否将 `chiikawa` 命令添加到 PATH（默认选「是」）。选择「是」后，打开**新的**命令提示符或 PowerShell 窗口即可使用：
 
 ```batch
 chiikawa
-chiikawa --size=small
-chiikawa --size=medium
+chiikawa --size small
+chiikawa --pet usagi
 ```
+
+`chiikawa` 只是对 `OhMyChiikawa.exe` 的轻量包装（会把 `--size` 映射到应用的 `--scale`），**无需 Node.js**。
+
+如果安装时跳过了该步骤，可稍后运行安装目录下的 `resources\packaging\win\install-cli.bat` 手动添加（同目录还有 `READ-ME-FIRST.txt` 安装说明）。
 
 ### 源码运行（macOS / Windows 通用）
 
@@ -132,7 +131,7 @@ chiikawa.cmd --size small
 OhMyChiikawa 支持 macOS 和 Windows。
 
 - **macOS**: 提供 DMG 安装包（arm64 / x64），推荐直接从 Releases 页面下载安装。支持 `chiikawa` 命令行启动。
-- **Windows**: 提供 NSIS 安装包和便携版（均 x64），支持 `chiikawa` 命令行启动（运行安装目录中的 `install-cli.bat` 添加至 PATH）。
+- **Windows**: 提供 NSIS 安装包和便携版（均 x64）。NSIS 安装时可选将 `chiikawa` 命令加入 PATH（无需 Node.js，直接启动 `OhMyChiikawa.exe`）。
 - **打包命令**:
   - macOS: `npm run dist:mac`
   - Windows: `npm run dist:win`（需在 Windows 环境下运行，或交叉编译）
@@ -243,18 +242,22 @@ The recommended path is the NSIS installer from the Releases page.
 2. Run the installer and follow the setup wizard.
 3. After installation, launch **OhMyChiikawa** from the Start Menu or Desktop shortcut.
 
-The installation directory contains two helper files:
-
-- `READ-ME-FIRST.txt`: installation and first-launch instructions.
-- `install-cli.bat`: optional CLI launcher installer. Run this to add the `chiikawa` command to your PATH.
-
-If you want to launch from the command line, run `install-cli.bat` from the installation directory first. Then open a **new** Command Prompt or PowerShell window and run:
+During installation the setup wizard offers to add the `chiikawa` command to
+your PATH (default Yes). If you accept, open a **new** Command Prompt or
+PowerShell window and run:
 
 ```batch
 chiikawa
-chiikawa --size=small
-chiikawa --size=medium
+chiikawa --size small
+chiikawa --pet usagi
 ```
+
+`chiikawa` is a thin wrapper around `OhMyChiikawa.exe` (it maps `--size` onto
+the app's `--scale` flag) and needs **no Node.js**.
+
+If you skipped that step during setup, run `resources\packaging\win\install-cli.bat`
+from the installation directory to add it later. The same folder also holds
+`READ-ME-FIRST.txt` with setup instructions.
 
 ### Run from source (macOS & Windows)
 
