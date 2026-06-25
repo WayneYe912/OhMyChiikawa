@@ -41,8 +41,8 @@
     // Random chatter shown on click / idle (overrides the renderer default).
     // Per-language: the renderer picks zh/en based on the current UI language.
     speech: {
-      zh: ['总会有办法的～', '哈！', '嘿嘿～', '没问题的！', '呀哈～'],
-      en: ['It\'ll work out~', 'Ha!', 'Hehe~', 'No problem!', 'Yaha~']
+      zh: ['完全搞不懂～', '嘿嘿嘿嘿～', '什么什么！', '没问题的！'],
+      en: ['I don\'t know~', 'Hehehehe~', 'What?', 'No problem!']
     }
   };
   var api = (typeof window !== 'undefined') ? window : globalThis;
