@@ -13,6 +13,7 @@
     id: 'chiikawa',
     name: 'Chiikawa',
     nameZh: '吉伊',
+    nameJa: 'ちいかわ',
     kind: 'image-layered',
     aspect: 650 / 786,
     natural: { w: 650, h: 786 },
@@ -34,10 +35,11 @@
     ],
     lid: 'rgb(255,255,255)',
     // Random chatter shown on click / idle (overrides the renderer default).
-    // Per-language: the renderer picks zh/en based on the current UI language.
+    // Per-language: the renderer picks zh/en/ja based on the current UI language.
     speech: {
       zh: ['Hmm！', '诶？', '呀𠳐𠳐～', '嘿～', '呜'],
-      en: ['Hmm!', 'Eh?', 'Yahaha~', 'Hey~', 'Woo']
+      en: ['Hmm!', 'Eh?', 'Yahaha~', 'Hey~', 'Woo'],
+      ja: ['んー！', 'えっ？', 'やはは～', 'やぁ～', 'うぅ']
     }
   };
   var api = (typeof window !== 'undefined') ? window : globalThis;

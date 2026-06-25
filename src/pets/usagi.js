@@ -14,6 +14,7 @@
     id: 'usagi',
     name: 'Usagi',
     nameZh: '乌萨奇',
+    nameJa: 'うさぎ',
     kind: 'image-layered',
     aspect: 600 / 910,
     natural: { w: 600, h: 910 },

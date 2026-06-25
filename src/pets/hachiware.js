@@ -19,6 +19,7 @@
     id: 'hachiware',
     name: 'Hachiware',
     nameZh: '小八',
+    nameJa: 'ハチワレ',
     kind: 'image-layered',
     aspect: 720 / 942,
     natural: { w: 720, h: 942 },
@@ -39,10 +40,11 @@
     ],
     lid: 'rgb(241,241,241)',
     // Random chatter shown on click / idle (overrides the renderer default).
-    // Per-language: the renderer picks zh/en based on the current UI language.
+    // Per-language: the renderer picks zh/en/ja based on the current UI language.
     speech: {
       zh: ['完全搞不懂～', '嘿嘿嘿嘿～', '什么什么！', '没问题的！'],
-      en: ['I don\'t know~', 'Hehehehe~', 'What?', 'No problem!']
+      en: ['I don\'t know~', 'Hehehehe~', 'What?', 'No problem!'],
+      ja: ['全然わかんない～', 'へへへへ～', 'なになに！', '大丈夫だよ！']
     }
   };
   var api = (typeof window !== 'undefined') ? window : globalThis;

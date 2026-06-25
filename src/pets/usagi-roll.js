@@ -19,6 +19,7 @@
     id: 'usagi-roll',
     name: 'Usagi (roll)',
     nameZh: '乌萨奇（转手版）',
+    nameJa: 'うさぎ（手回し版）',
     kind: 'image-sequence',
     aspect: 600 / 910,               // re-canvased to match body.png
     natural: { w: 600, h: 910 },
