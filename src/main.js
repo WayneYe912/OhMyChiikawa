@@ -53,10 +53,11 @@ const t = (zh, en) => (lang === 'en' ? en : zh); // pick the current language's 
 // Per-language character names for the menu (the main process has no pet registry).
 const PET_LABELS = {
   usagi: { zh: '乌萨奇', en: 'Usagi' },
-  chiikawa: { zh: '吉伊', en: 'Chiikawa' }
+  chiikawa: { zh: '吉伊', en: 'Chiikawa' },
+  hachiware: { zh: '小八', en: 'Hachiware' }
 };
 const ROLL_PETS = new Set(['usagi']);           // pets that have the hand-roll action
-const PET_SPEED = { usagi: 3, chiikawa: 2 };    // walk speed px/tick (16ms); default 2
+const PET_SPEED = { usagi: 3, chiikawa: 2, hachiware: 2 }; // walk speed px/tick (16ms); default 2
 const petLabel = (id) => (PET_LABELS[id] ? PET_LABELS[id][lang] : id);
 const SCALES = { small: 150, medium: 200, large: 270 }; // pet display height (px)
 let scaleName = argValue('scale', 'medium');
