@@ -1,0 +1,21 @@
+src/pets/hachiware.js
+  s_944f9755bab214::t_9d300f9f8bce6d 45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "490e4b615962502baa5ed8c40b27ce15b08cc2ac",
+  "prompts": {},
+  "sessions": {
+    "s_944f9755bab214": {
+      "agent_id": {
+        "tool": "trae-cue",
+        "id": "ai_tab-icr-a5fb7bf5-f7d6-40b5-82fe-cd1995ffb286",
+        "model": "default"
+      },
+      "human_author": "WayneYe <wayneye@foxmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
