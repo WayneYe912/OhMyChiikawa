@@ -1,6 +1,6 @@
 # OhMyChiikawa
 
-**Language:** [简体中文](README.zh-CN.md) | [English](README.en.md) | [日本語](README.ja.md)
+**Language:** [简体中文](README.md) | [English](README.en.md) | [日本語](README.ja.md)
 
 OhMyChiikawa is a lightweight desktop pet for macOS and Windows. After launch, the default character **Usagi** appears on your desktop, and you can switch to **Chiikawa** or **Hachiware** anytime from the right-click menu. All three characters can be dragged around, clicked on different body parts, follow the cursor, wander occasionally, and play idle animations such as blinking and subtle ear movement.
 

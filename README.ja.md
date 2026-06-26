@@ -1,6 +1,6 @@
 # OhMyChiikawa
 
-**言語:** [简体中文](README.zh-CN.md) | [English](README.en.md) | [日本語](README.ja.md)
+**言語:** [简体中文](README.md) | [English](README.en.md) | [日本語](README.ja.md)
 
 OhMyChiikawa は macOS と Windows 向けの軽量デスクトップペットです。起動すると、既定のキャラクター **うさぎ** がデスクトップに表示されます。右クリックメニューから **ちいかわ** や **ハチワレ** にいつでも切り替えられます。3 つのキャラクターはドラッグ移動、部位ごとのクリック反応、カーソル追従、ときどき散歩、待機中のまばたきや耳の小さな揺れに対応しています。
 
