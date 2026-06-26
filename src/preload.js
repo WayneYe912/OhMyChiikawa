@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('petAPI', {
 
   // main -> renderer
   onReact: (cb) => ipcRenderer.on('pet:react', (_e, type) => cb(type)),
+  onCursor: (cb) => ipcRenderer.on('pet:cursor', (_e, p) => cb(p)),
   onLook: (cb) => ipcRenderer.on('pet:look', (_e, v) => cb(v)),
   onWalk: (cb) => ipcRenderer.on('pet:walk', (_e, v) => cb(v)),
   onWalkStop: (cb) => ipcRenderer.on('pet:walk-stop', () => cb()),

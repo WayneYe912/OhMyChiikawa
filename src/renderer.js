@@ -469,6 +469,10 @@
   // ---------- IPC ----------
   if (window.petAPI) {
     window.petAPI.onReact(function (type) { react(type); });
+    // Main polls the global cursor (window-relative coords) so click-through
+    // hit-testing is robust even when forwarded mousemove stalls or the pet
+    // wanders under a stationary cursor. Skip while dragging (ignore must stay off).
+    window.petAPI.onCursor(function (p) { if (!drag.active) setIgnore(!overPet(p.x, p.y)); });
     window.petAPI.onLook(function (v) { anim.look.dx = v.dx; anim.look.dy = v.dy; });
     window.petAPI.onWalk(function (v) { anim.walking = true; anim.walkDir = v.dir; anim.facing = v.dir < 0 ? 1 : -1; startRun(); });
     window.petAPI.onWalkStop(function () { anim.walking = false; anim.facing = 1; stopRun(); });

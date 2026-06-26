@@ -66,18 +66,17 @@ chiikawa --scale=large
 2. 双击安装包，按照安装向导完成安装。
 3. 安装完成后，从开始菜单或桌面快捷方式启动 **OhMyChiikawa**。
 
-安装目录中包含两个辅助文件：
-
-- `READ-ME-FIRST.txt`：安装和首次打开说明。
-- `install-cli.bat`：命令行启动器安装脚本。双击它可以将 `chiikawa` 命令添加到系统 PATH。
-
-如果你希望从命令行启动，请先运行安装目录中的 `install-cli.bat`，之后打开**新的**命令提示符或 PowerShell 窗口，即可使用：
+安装过程中，安装向导会询问是否将 `chiikawa` 命令添加到 PATH（默认选「是」）。选择「是」后，打开**新的**命令提示符或 PowerShell 窗口即可使用：
 
 ```batch
 chiikawa
-chiikawa --size=small
-chiikawa --size=medium
+chiikawa --size small
+chiikawa --pet usagi
 ```
+
+`chiikawa` 只是对 `OhMyChiikawa.exe` 的轻量包装（会把 `--size` 映射到应用的 `--scale`），**无需 Node.js**。
+
+如果安装时跳过了该步骤，可稍后运行安装目录下的 `resources\packaging\win\install-cli.bat` 手动添加（同目录还有 `READ-ME-FIRST.txt` 安装说明）。
 
 ### 源码运行（macOS / Windows 通用）
 

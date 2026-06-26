@@ -247,13 +247,25 @@ ipcMain.on('menu:open', () => {
   Menu.buildFromTemplate(tmpl).popup({ window: win });
 });
 
-// ---------- cursor follow ----------
+// ---------- cursor poll: drives click-through hit-testing AND eye-follow ----------
+// Click-through is hit-tested here, from the global cursor against live window
+// bounds, rather than relying solely on the renderer's mousemove. On Windows the
+// forwarded move events under setIgnoreMouseEvents({forward:true}) stall after
+// focus changes / occlusion, and the pet can also wander UNDER a stationary
+// cursor (the window moves but no mousemove fires) — both leave the renderer's
+// toggle stuck, so the pet stops being draggable / right-clickable and clicks
+// fall through to the desktop. Polling the OS cursor fixes both, because IPC is
+// unaffected by the ignore state. The poll runs whenever the window is open;
+// `settings.follow` only gates the eye-follow message.
 function startLook() {
   stopLook();
   lookTimer = setInterval(() => {
-    if (!win || dragging || !settings.follow) return;
+    if (!win || dragging) return;
     const c = screen.getCursorScreenPoint();
-    const b = win.getBounds();
+    const b = win.getContentBounds();
+    // Window-relative cursor -> renderer alpha hit-test (always, for click-through).
+    win.webContents.send('pet:cursor', { x: c.x - b.x, y: c.y - b.y });
+    if (!settings.follow) return;
     const cx = b.x + b.width / 2;
     const cy = b.y + b.height * 0.42; // around the face
     const clamp = (v) => Math.max(-1, Math.min(1, v));
@@ -311,7 +323,7 @@ app.on('window-all-closed', () => app.quit());
 app.whenReady().then(() => {
   createWindow();
   win.webContents.once('did-finish-load', () => {
-    if (settings.follow) startLook();
+    startLook(); // always polls: drives click-through; eye-follow gated by settings.follow
     scheduleWalk();
   });
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
