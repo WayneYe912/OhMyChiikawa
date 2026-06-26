@@ -28,7 +28,7 @@
   // ---------- resolve pet ----------
   var params = new URLSearchParams(location.search);
   var petId = params.get('pet') || 'usagi';
-  var lang = (params.get('lang') === 'en') ? 'en' : 'zh';   // UI / speech language
+  var lang = (['en', 'zh', 'ja'].indexOf(params.get('lang')) >= 0) ? params.get('lang') : 'zh';   // UI / speech language
   var scaleH = SCALES[params.get('scale')] || SCALES.medium;
   var pet = (window.PetRegistry && (window.PetRegistry.get(petId) || window.PetRegistry.get('usagi')));
   if (!pet) { document.body.textContent = 'No pet registered.'; return; }
@@ -306,9 +306,10 @@
   // ROLL_LINE are refreshed by applyLang() on load and on a live language switch.
   var DEFAULT_SPEECH = {
     zh: ['哈？', '呀哈', '乌拉！', '乌拉呀哈呀啦呜哈～', '呀哈呀哈', '哈！'],
-    en: ['Ha?', 'Yaha', 'Ura!', 'Ura yaha yara wuha~', 'Yaha yaha', 'Ha!']
+    en: ['Ha?', 'Yaha', 'Ura!', 'Ura yaha yara wuha~', 'Yaha yaha', 'Ha!'],
+    ja: ['ハァ？', 'ヤハ', 'ウラ！', 'ウラヤハヤラウハ～', 'ヤハヤハ', 'ハッ！']
   };
-  var ROLL_LINES = { zh: '噜噜噜噜噜！', en: 'Rurururu!' };   // fixed line while rolling
+  var ROLL_LINES = { zh: '噜噜噜噜噜！', en: 'Rurururu!', ja: 'ルルルルル！' };   // fixed line while rolling
   var SPEECH, ROLL_LINE;
   function applyLang() {
     var s = pet.speech || DEFAULT_SPEECH;
@@ -476,6 +477,6 @@
     window.petAPI.onWalk(function (v) { anim.walking = true; anim.walkDir = v.dir; anim.facing = v.dir < 0 ? 1 : -1; startRun(); });
     window.petAPI.onWalkStop(function () { anim.walking = false; anim.facing = 1; stopRun(); });
     window.petAPI.onScale(function (h) { scaleH = h; layout(); });
-    window.petAPI.onLang(function (l) { lang = (l === 'en') ? 'en' : 'zh'; applyLang(); });
+    window.petAPI.onLang(function (l) { lang = (['en', 'zh', 'ja'].indexOf(l) >= 0) ? l : 'zh'; applyLang(); });
   }
 })();

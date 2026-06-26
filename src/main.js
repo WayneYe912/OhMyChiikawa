@@ -48,15 +48,16 @@ const prefs = loadPrefs();
 
 // An explicit --pet on the CLI wins; otherwise restore the last chosen pet.
 let currentPet = argValue('pet', null) || prefs.pet || 'usagi';   // switchable from the right-click menu
-let lang = (prefs.lang === 'en') ? 'en' : 'zh';   // menu & speech language (switchable, remembered)
-const t = (zh, en) => (lang === 'en' ? en : zh); // pick the current language's string
+let lang = (['en', 'zh', 'ja'].includes(prefs.lang)) ? prefs.lang : 'zh';   // menu & speech language (switchable, remembered)
+const t = (zh, en, ja) => (lang === 'en' ? en : lang === 'ja' ? ja : zh); // pick the current language's string
 // Per-language character names for the menu (the main process has no pet registry).
 const PET_LABELS = {
-  usagi: { zh: '乌萨奇', en: 'Usagi' },
-  chiikawa: { zh: '吉伊', en: 'Chiikawa' }
+  usagi: { zh: '乌萨奇', en: 'Usagi', ja: 'うさぎ' },
+  chiikawa: { zh: '吉伊', en: 'Chiikawa', ja: 'ちいかわ' },
+  hachiware: { zh: '小八', en: 'Hachiware', ja: 'ハチワレ' }
 };
 const ROLL_PETS = new Set(['usagi']);           // pets that have the hand-roll action
-const PET_SPEED = { usagi: 3, chiikawa: 2 };    // walk speed px/tick (16ms); default 2
+const PET_SPEED = { usagi: 3, chiikawa: 2, hachiware: 2 }; // walk speed px/tick (16ms); default 2
 const petLabel = (id) => (PET_LABELS[id] ? PET_LABELS[id][lang] : id);
 const SCALES = { small: 150, medium: 200, large: 270 }; // pet display height (px)
 let scaleName = argValue('scale', 'medium');
@@ -186,7 +187,7 @@ function switchPet(id) {
 // Switch the menu / speech language. The menu rebuilds on next open; the renderer
 // updates its speech lines live over IPC (no reload needed).
 function setLang(l) {
-  l = (l === 'en') ? 'en' : 'zh';
+  l = (['en', 'zh', 'ja'].includes(l)) ? l : 'zh';
   if (l === lang) return;
   lang = l;
   prefs.lang = lang; savePrefs();
@@ -200,52 +201,48 @@ ipcMain.on('menu:open', () => {
     { label: petLabel(currentPet), enabled: false },
     { type: 'separator' },
     {
-      label: t('角色', 'Character'),
+      label: t('角色', 'Character', 'キャラクター'),
       submenu: Object.keys(PET_LABELS).map((id) => ({
         label: petLabel(id), type: 'radio', checked: currentPet === id,
         click: () => switchPet(id)
       }))
     },
     {
-      label: t('语言', 'Language'),
+      label: t('语言', 'Language', '言語'),
       submenu: [
         { label: '中文', type: 'radio', checked: lang === 'zh', click: () => setLang('zh') },
-        { label: 'English', type: 'radio', checked: lang === 'en', click: () => setLang('en') }
+        { label: 'English', type: 'radio', checked: lang === 'en', click: () => setLang('en') },
+        { label: '日本語', type: 'radio', checked: lang === 'ja', click: () => setLang('ja') }
       ]
     },
     { type: 'separator' },
     {
-      label: t('跟随鼠标', 'Follow cursor'), type: 'checkbox', checked: settings.follow,
-      // The poll keeps running (it also drives click-through); disabling follow
-      // just recenters the eyes instead of stopping the poll.
-      click: () => {
-        settings.follow = !settings.follow;
-        if (!settings.follow && win) { lastLook = { dx: 0, dy: 0 }; win.webContents.send('pet:look', { dx: 0, dy: 0 }); }
-      }
+      label: t('跟随鼠标', 'Follow cursor', 'カーソルを追う'), type: 'checkbox', checked: settings.follow,
+      click: () => { settings.follow = !settings.follow; if (settings.follow) startLook(); else stopLook(); }
     },
     {
-      label: t('四处走动', 'Wander'), type: 'checkbox', checked: settings.wander,
+      label: t('四处走动', 'Wander', 'うろうろ歩く'), type: 'checkbox', checked: settings.wander,
       click: () => { settings.wander = !settings.wander; if (settings.wander) scheduleWalk(); else stopWalk(); }
     },
     {
-      label: t('总在最前', 'Always on top'), type: 'checkbox', checked: settings.onTop,
+      label: t('总在最前', 'Always on top', '常に最前面'), type: 'checkbox', checked: settings.onTop,
       click: () => { settings.onTop = !settings.onTop; applyOnTop(); }
     },
     { type: 'separator' },
     {
-      label: t('大小', 'Size'),
+      label: t('大小', 'Size', 'サイズ'),
       submenu: ['small', 'medium', 'large'].map((s) => ({
-        label: { small: t('小', 'Small'), medium: t('中', 'Medium'), large: t('大', 'Large') }[s],
+        label: { small: t('小', 'Small', '小'), medium: t('中', 'Medium', '中'), large: t('大', 'Large', '大') }[s],
         type: 'radio', checked: scaleName === s,
         click: () => { scaleName = s; if (win) win.webContents.send('scale:set', SCALES[s]); }
       }))
     },
-    { label: t('跳一下', 'Hop'), click: () => win && win.webContents.send('pet:react', 'hop') },
+    { label: t('跳一下', 'Hop', 'ジャンプ'), click: () => win && win.webContents.send('pet:react', 'hop') },
     ...(ROLL_PETS.has(currentPet)
-      ? [{ label: t('转手', 'Roll hands'), click: () => win && win.webContents.send('pet:react', 'roll') }]
+      ? [{ label: t('转手', 'Roll hands', '手をぐるぐる'), click: () => win && win.webContents.send('pet:react', 'roll') }]
       : []),
     { type: 'separator' },
-    { label: t('退出', 'Quit') + ' ' + petLabel(currentPet), click: () => app.quit() }
+    { label: t('退出', 'Quit', '終了') + ' ' + petLabel(currentPet), click: () => app.quit() }
   ];
   Menu.buildFromTemplate(tmpl).popup({ window: win });
 });
