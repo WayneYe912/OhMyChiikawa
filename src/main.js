@@ -15,7 +15,7 @@
 const { app, BrowserWindow, ipcMain, Menu, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { clampWindowBounds, resolveDragBounds, resolveWalkPlan } = require('./window-geometry');
+const { clampWindowBounds, mergeAreas, resolveDragBounds, resolveWalkPlan } = require('./window-geometry');
 
 // ---------- encrypted image vault ----------
 // Decrypt assets.pak once here in the main process (which has full Node access);
@@ -131,6 +131,10 @@ function workAreaForBounds(bounds) {
   }).workArea;
 }
 
+function workAreaForDragging() {
+  return mergeAreas(screen.getAllDisplays().map((display) => display.workArea));
+}
+
 function currentCursorPoint(fallback) {
   try {
     const point = screen.getCursorScreenPoint();
@@ -183,7 +187,7 @@ ipcMain.on('drag:start', (_e, pos) => {
   dragging = true;
   const cursor = currentCursorPoint(pos);
   const b = win.getBounds();
-  dragArea = workAreaForBounds(b);
+  dragArea = workAreaForDragging();
   dragOffset = { x: Math.round(cursor.x - b.x), y: Math.round(cursor.y - b.y) };
   stopWalk();
 });

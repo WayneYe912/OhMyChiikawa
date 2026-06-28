@@ -63,6 +63,20 @@ test('resolveDragBounds keeps the original drag offset while clamped at the righ
   });
 });
 
+test('resolveDragBounds can cross from one display into an adjacent display', () => {
+  const area = geometry.mergeAreas([
+    { x: 0, y: 0, width: 800, height: 600 },
+    { x: 800, y: 0, width: 1024, height: 600 }
+  ]);
+  const bounds = { x: 560, y: 100, width: 240, height: 320 };
+  const offset = { x: 50, y: 40 };
+
+  assert.deepEqual(geometry.resolveDragBounds(bounds, area, { x: 850, y: 140 }, offset), {
+    bounds: { x: 800, y: 100, width: 240, height: 320 },
+    offset: { x: 50, y: 40 }
+  });
+});
+
 test('getSpeechAnchor follows the pet box and animated body offset', () => {
   const box = { left: 48, top: 60, w: 200, h: 200 };
 
