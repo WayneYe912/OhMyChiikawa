@@ -15,7 +15,7 @@
 const { app, BrowserWindow, ipcMain, Menu, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { areaForPoint, clampWindowBounds, resolveDragBounds, resolveWalkPlan } = require('./window-geometry');
+const { clampWindowBounds, dragAreaForPoint, resolveDragBounds, resolveWalkPlan } = require('./window-geometry');
 
 // ---------- encrypted image vault ----------
 // Decrypt assets.pak once here in the main process (which has full Node access);
@@ -130,7 +130,7 @@ function workAreaForBounds(bounds) {
 }
 
 function workAreaForPoint(point) {
-  return areaForPoint(screen.getAllDisplays().map((display) => display.workArea), point);
+  return dragAreaForPoint(screen.getAllDisplays(), point);
 }
 
 function currentCursorPoint(fallback) {

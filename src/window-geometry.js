@@ -69,6 +69,12 @@
     return nearest;
   }
 
+  function dragAreaForPoint(displays, point) {
+    return areaForPoint((displays || []).map(function (display) {
+      return display && (display.bounds || display.workArea || display);
+    }), point);
+  }
+
   function resolveWalkPlan(bounds, area, preferredDir, distance, minDistance) {
     const current = clampWindowBounds(bounds, area);
     const minX = round(area.x);
@@ -115,6 +121,7 @@
   return {
     clampWindowBounds: clampWindowBounds,
     areaForPoint: areaForPoint,
+    dragAreaForPoint: dragAreaForPoint,
     resolveWalkPlan: resolveWalkPlan,
     resolveDragBounds: resolveDragBounds,
     getSpeechAnchor: getSpeechAnchor

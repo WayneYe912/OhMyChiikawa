@@ -92,6 +92,21 @@ test('resolveDragBounds clamps to the cursor display instead of a taller adjacen
   });
 });
 
+test('dragAreaForPoint uses display bounds so a bottom taskbar does not push the pet upward', () => {
+  const displays = [{
+    bounds: { x: 0, y: 0, width: 800, height: 600 },
+    workArea: { x: 0, y: 0, width: 800, height: 560 }
+  }];
+  const area = geometry.dragAreaForPoint(displays, { x: 400, y: 599 });
+  const bounds = { x: 300, y: 240, width: 240, height: 320 };
+  const offset = { x: 50, y: 40 };
+
+  assert.deepEqual(geometry.resolveDragBounds(bounds, area, { x: 400, y: 599 }, offset), {
+    bounds: { x: 350, y: 280, width: 240, height: 320 },
+    offset: { x: 50, y: 40 }
+  });
+});
+
 test('getSpeechAnchor follows the pet box and animated body offset', () => {
   const box = { left: 48, top: 60, w: 200, h: 200 };
 
