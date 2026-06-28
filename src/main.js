@@ -15,7 +15,7 @@
 const { app, BrowserWindow, ipcMain, Menu, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { clampWindowBounds, resolveWalkTargetX } = require('./window-geometry');
+const { clampWindowBounds, resolveDragBounds, resolveWalkTargetX } = require('./window-geometry');
 
 // ---------- encrypted image vault ----------
 // Decrypt assets.pak once here in the main process (which has full Node access);
@@ -69,8 +69,8 @@ let win = null;
 const settings = { follow: true, wander: true, onTop: true };
 
 let dragging = false;
-let dragAnchor = { x: 0, y: 0 };
-let winStart = { x: 0, y: 0 };
+let dragOffset = { x: 0, y: 0 };
+let dragTimer = null;
 
 let walkTimer = null;    // active stroll stepper
 let walkPlan = null;     // scheduler for next stroll
@@ -112,7 +112,11 @@ function createWindow() {
   // start click-through; the renderer turns it off while the cursor is on the pet
   win.setIgnoreMouseEvents(true, { forward: true });
 
-  win.on('closed', () => { win = null; });
+  win.on('closed', () => {
+    dragging = false;
+    stopDragTimer();
+    win = null;
+  });
 }
 
 function applyOnTop() {
@@ -127,20 +131,38 @@ function workAreaForBounds(bounds) {
   }).workArea;
 }
 
+function workAreaForPoint(point) {
+  return screen.getDisplayNearestPoint(point).workArea;
+}
+
 function clampBoundsToWorkArea(bounds) {
   return clampWindowBounds(bounds, workAreaForBounds(bounds));
 }
 
-function setPositionWithinWorkArea(x, y) {
+function currentCursorPoint(fallback) {
+  try {
+    const point = screen.getCursorScreenPoint();
+    if (Number.isFinite(point.x) && Number.isFinite(point.y)) return point;
+  } catch (e) {}
+  return {
+    x: fallback && Number.isFinite(fallback.x) ? fallback.x : 0,
+    y: fallback && Number.isFinite(fallback.y) ? fallback.y : 0
+  };
+}
+
+function moveDraggedWindow(cursor) {
   if (!win) return;
   const cur = win.getBounds();
-  const next = clampBoundsToWorkArea({
-    x,
-    y,
-    width: cur.width,
-    height: cur.height
-  });
-  win.setPosition(next.x, next.y);
+  const next = resolveDragBounds(cur, workAreaForPoint(cursor), cursor, dragOffset);
+  dragOffset = next.offset;
+  win.setPosition(next.bounds.x, next.bounds.y);
+}
+
+function stopDragTimer() {
+  if (dragTimer) {
+    clearInterval(dragTimer);
+    dragTimer = null;
+  }
 }
 
 // ---------- sizing & placement ----------
@@ -172,20 +194,26 @@ function fitWindow(w, h) {
 
 // ---------- dragging ----------
 ipcMain.on('drag:start', (_e, pos) => {
+  if (!win) return;
   dragging = true;
-  dragAnchor = pos;
+  const cursor = currentCursorPoint(pos);
   const b = win.getBounds();
-  winStart = { x: b.x, y: b.y };
+  dragOffset = { x: Math.round(cursor.x - b.x), y: Math.round(cursor.y - b.y) };
   stopWalk();
+  stopDragTimer();
+  dragTimer = setInterval(() => {
+    if (!dragging) return;
+    moveDraggedWindow(currentCursorPoint());
+  }, 16);
 });
 ipcMain.on('drag:move', (_e, pos) => {
   if (!dragging || !win) return;
-  setPositionWithinWorkArea(
-    winStart.x + Math.round(pos.x - dragAnchor.x),
-    winStart.y + Math.round(pos.y - dragAnchor.y)
-  );
+  moveDraggedWindow(currentCursorPoint(pos));
 });
-ipcMain.on('drag:end', () => { dragging = false; });
+ipcMain.on('drag:end', () => {
+  dragging = false;
+  stopDragTimer();
+});
 
 // ---------- click-through ----------
 ipcMain.on('hit:ignore', (_e, ignore) => {

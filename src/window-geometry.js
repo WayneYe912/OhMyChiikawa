@@ -40,6 +40,23 @@
     }, area).x;
   }
 
+  function resolveDragBounds(bounds, area, cursor, offset) {
+    const next = clampWindowBounds({
+      x: round(cursor.x) - round(offset.x),
+      y: round(cursor.y) - round(offset.y),
+      width: bounds.width,
+      height: bounds.height
+    }, area);
+
+    return {
+      bounds: next,
+      offset: {
+        x: clamp(round(cursor.x) - next.x, 0, next.width),
+        y: clamp(round(cursor.y) - next.y, 0, next.height)
+      }
+    };
+  }
+
   function getSpeechAnchor(box, motion) {
     const dx = motion && Number.isFinite(motion.x) ? motion.x : 0;
     const dy = motion && Number.isFinite(motion.y) ? motion.y : 0;
@@ -52,6 +69,7 @@
   return {
     clampWindowBounds: clampWindowBounds,
     resolveWalkTargetX: resolveWalkTargetX,
+    resolveDragBounds: resolveDragBounds,
     getSpeechAnchor: getSpeechAnchor
   };
 });

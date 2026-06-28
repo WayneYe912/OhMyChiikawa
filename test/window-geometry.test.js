@@ -34,6 +34,24 @@ test('resolveWalkTargetX clamps a stroll target to the available horizontal rang
   assert.equal(geometry.resolveWalkTargetX(bounds, area, bounds.x + 260), 580);
 });
 
+test('resolveDragBounds rebases the drag offset after clamping at the right edge', () => {
+  const area = { x: 0, y: 0, width: 800, height: 600 };
+  const bounds = { x: 400, y: 100, width: 240, height: 320 };
+  const offset = { x: 50, y: 40 };
+
+  const edge = geometry.resolveDragBounds(bounds, area, { x: 799, y: 140 }, offset);
+  assert.deepEqual(edge, {
+    bounds: { x: 560, y: 100, width: 240, height: 320 },
+    offset: { x: 239, y: 40 }
+  });
+
+  const back = geometry.resolveDragBounds(edge.bounds, area, { x: 789, y: 140 }, edge.offset);
+  assert.deepEqual(back, {
+    bounds: { x: 550, y: 100, width: 240, height: 320 },
+    offset: { x: 239, y: 40 }
+  });
+});
+
 test('getSpeechAnchor follows the pet box and animated body offset', () => {
   const box = { left: 48, top: 60, w: 200, h: 200 };
 
