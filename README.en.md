@@ -30,6 +30,8 @@ OhMyChiikawa is a lightweight desktop pet for macOS and Windows. After launch, t
 
 The recommended path for everyday use is the DMG installer from the Releases page.
 
+Alternative download: [Baidu Netdisk](https://pan.baidu.com/s/1-G07TOu_xHGDuVjOOsOVew?pwd=wgd3).
+
 1. Open the project Releases page and download the installer for your Mac:
    - Apple Silicon: `OhMyChiikawa-<version>-arm64.dmg`
    - Intel: `OhMyChiikawa-<version>-x64.dmg`
@@ -42,12 +44,7 @@ The recommended path for everyday use is the DMG installer from the Releases pag
    xattr -dr com.apple.quarantine /Applications/OhMyChiikawa.app
    ```
 
-The installer also includes two helper files:
-
-- `READ-ME-FIRST.txt`: installation and first-launch instructions.
-- `install-cli.command`: an optional command-line launcher installer. Double-click it only if you want to start OhMyChiikawa from Terminal with the `chiikawa` command.
-
-If you prefer launching from Terminal, double-click `install-cli.command` in the installer first. Then you can use:
+If the `chiikawa` command is enabled on your system, you can also launch from Terminal:
 
 ```bash
 chiikawa
@@ -60,24 +57,23 @@ chiikawa --scale=large
 
 The recommended path is the NSIS installer from the Releases page.
 
+Alternative download: [Baidu Netdisk](https://pan.baidu.com/s/1-G07TOu_xHGDuVjOOsOVew?pwd=wgd3).
+
 1. Open the project Releases page and download the Windows installer:
    - `OhMyChiikawa-<version>-win-x64.exe` (installer)
    - `OhMyChiikawa-<version>-portable-x64.exe` (portable, no install required)
 2. Run the installer and follow the setup wizard.
 3. After installation, launch **OhMyChiikawa** from the Start Menu or Desktop shortcut.
 
-The installation directory contains two helper files:
-
-- `READ-ME-FIRST.txt`: installation and first-launch instructions.
-- `install-cli.bat`: optional CLI launcher installer. Run this to add the `chiikawa` command to your PATH.
-
-If you want to launch from the command line, run `install-cli.bat` from the installation directory first. Then open a **new** Command Prompt or PowerShell window and run:
+During installation, the setup wizard can add the `chiikawa` command to PATH. If enabled, open a **new** Command Prompt or PowerShell window and run:
 
 ```batch
 chiikawa
-chiikawa --size=small
-chiikawa --size=medium
+chiikawa --size small
+chiikawa --pet usagi
 ```
+
+`chiikawa` is a lightweight launcher for `OhMyChiikawa.exe`; **Node.js is not required**.
 
 ### Run from source (macOS & Windows)
 
@@ -127,13 +123,8 @@ The script checks local dependencies before launch. If dependencies are missing,
 
 OhMyChiikawa supports macOS and Windows.
 
-- **macOS**: DMG installer provided (arm64 / x64). Download from the Releases page. The installer includes first-launch instructions and an optional CLI installer, and supports the `chiikawa` command-line launcher.
-- **Windows**: NSIS installer and portable edition provided (x64). Supports the `chiikawa` command-line launcher when `install-cli.bat` from the installation directory is run to add it to PATH.
-- **Build commands**:
-  - macOS: `npm run dist:mac`
-  - Windows: `npm run dist:win` (run on Windows, or cross-compile)
-  - Windows NSIS: `npm run dist:win:nsis`
-  - Windows portable: `npm run dist:win:portable`
+- **macOS**: DMG installer provided (arm64 / x64). Download from the Releases page.
+- **Windows**: NSIS installer and portable edition provided (x64).
 
 ## Roadmap
 
