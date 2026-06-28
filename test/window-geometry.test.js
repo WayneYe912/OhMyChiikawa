@@ -64,15 +64,30 @@ test('resolveDragBounds keeps the original drag offset while clamped at the righ
 });
 
 test('resolveDragBounds can cross from one display into an adjacent display', () => {
-  const area = geometry.mergeAreas([
+  const area = geometry.areaForPoint([
     { x: 0, y: 0, width: 800, height: 600 },
     { x: 800, y: 0, width: 1024, height: 600 }
-  ]);
+  ], { x: 850, y: 140 });
   const bounds = { x: 560, y: 100, width: 240, height: 320 };
   const offset = { x: 50, y: 40 };
 
   assert.deepEqual(geometry.resolveDragBounds(bounds, area, { x: 850, y: 140 }, offset), {
     bounds: { x: 800, y: 100, width: 240, height: 320 },
+    offset: { x: 50, y: 40 }
+  });
+});
+
+test('resolveDragBounds clamps to the cursor display instead of a taller adjacent display', () => {
+  const displays = [
+    { x: 0, y: 0, width: 800, height: 600 },
+    { x: 800, y: 0, width: 1024, height: 900 }
+  ];
+  const area = geometry.areaForPoint(displays, { x: 400, y: 599 });
+  const bounds = { x: 300, y: 260, width: 240, height: 320 };
+  const offset = { x: 50, y: 40 };
+
+  assert.deepEqual(geometry.resolveDragBounds(bounds, area, { x: 400, y: 599 }, offset), {
+    bounds: { x: 350, y: 280, width: 240, height: 320 },
     offset: { x: 50, y: 40 }
   });
 });

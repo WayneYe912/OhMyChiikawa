@@ -15,7 +15,7 @@
 const { app, BrowserWindow, ipcMain, Menu, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { clampWindowBounds, mergeAreas, resolveDragBounds, resolveWalkPlan } = require('./window-geometry');
+const { areaForPoint, clampWindowBounds, resolveDragBounds, resolveWalkPlan } = require('./window-geometry');
 
 // ---------- encrypted image vault ----------
 // Decrypt assets.pak once here in the main process (which has full Node access);
@@ -70,7 +70,6 @@ const settings = { follow: true, wander: true, onTop: true };
 
 let dragging = false;
 let dragOffset = { x: 0, y: 0 };
-let dragArea = null;
 
 let walkTimer = null;    // active stroll stepper
 let walkPlan = null;     // scheduler for next stroll
@@ -114,7 +113,6 @@ function createWindow() {
 
   win.on('closed', () => {
     dragging = false;
-    dragArea = null;
     win = null;
   });
 }
@@ -131,8 +129,8 @@ function workAreaForBounds(bounds) {
   }).workArea;
 }
 
-function workAreaForDragging() {
-  return mergeAreas(screen.getAllDisplays().map((display) => display.workArea));
+function workAreaForPoint(point) {
+  return areaForPoint(screen.getAllDisplays().map((display) => display.workArea), point);
 }
 
 function currentCursorPoint(fallback) {
@@ -149,7 +147,7 @@ function currentCursorPoint(fallback) {
 function moveDraggedWindow(cursor) {
   if (!win) return;
   const cur = win.getBounds();
-  const next = resolveDragBounds(cur, dragArea || workAreaForBounds(cur), cursor, dragOffset);
+  const next = resolveDragBounds(cur, workAreaForPoint(cursor), cursor, dragOffset);
   dragOffset = next.offset;
   win.setPosition(next.bounds.x, next.bounds.y);
 }
@@ -187,7 +185,6 @@ ipcMain.on('drag:start', (_e, pos) => {
   dragging = true;
   const cursor = currentCursorPoint(pos);
   const b = win.getBounds();
-  dragArea = workAreaForDragging();
   dragOffset = { x: Math.round(cursor.x - b.x), y: Math.round(cursor.y - b.y) };
   stopWalk();
 });
@@ -197,7 +194,6 @@ ipcMain.on('drag:move', (_e, pos) => {
 });
 ipcMain.on('drag:end', () => {
   dragging = false;
-  dragArea = null;
 });
 
 // ---------- click-through ----------
