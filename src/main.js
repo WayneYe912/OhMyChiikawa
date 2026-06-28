@@ -198,9 +198,8 @@ function moveDraggedWindow(cursor, trustCursor) {
   const area = workAreaForDrag(dragBounds, point);
   const next = resolveDragBounds(dragBounds, area, point, dragOffset);
   dragOffset = next.offset;
-  if (next.bounds.x !== cur.x || next.bounds.y !== cur.y ||
-      next.bounds.width !== cur.width || next.bounds.height !== cur.height) {
-    win.setBounds(next.bounds);
+  if (next.bounds.x !== cur.x || next.bounds.y !== cur.y) {
+    win.setPosition(next.bounds.x, next.bounds.y);
   }
 }
 
@@ -254,10 +253,12 @@ function startDragPoll() {
 // headroom). We keep the pet's bottom-centre anchored so menu resizes feel
 // stable, and place it bottom-right on first fit.
 let placed = false;
+let lastFitSize = null;
 function fitWindow(w, h) {
   if (!win) return;
   w = Math.max(60, Math.round(w));
   h = Math.max(60, Math.round(h));
+  lastFitSize = { width: w, height: h };
   const cur = win.getBounds();
   const disp = screen.getDisplayNearestPoint({ x: cur.x + cur.width / 2, y: cur.y + cur.height / 2 });
   const area = disp.workArea;
@@ -276,9 +277,28 @@ function fitWindow(w, h) {
   if (!win.isVisible()) win.show();
 }
 
+function restoreWindowSizeIfNeeded() {
+  if (!win || !lastFitSize) return;
+  const cur = win.getBounds();
+  if (Math.abs(cur.width - lastFitSize.width) <= 2 && Math.abs(cur.height - lastFitSize.height) <= 2) return;
+  const x = Math.round(cur.x + cur.width / 2 - lastFitSize.width / 2);
+  const y = Math.round(cur.y + cur.height - lastFitSize.height);
+  const area = screen.getDisplayNearestPoint({
+    x: cur.x + cur.width / 2,
+    y: cur.y + cur.height / 2
+  }).bounds;
+  win.setBounds(clampWindowBounds({
+    x: x,
+    y: y,
+    width: lastFitSize.width,
+    height: lastFitSize.height
+  }, area));
+}
+
 // ---------- dragging ----------
 ipcMain.on('drag:start', (_e, pos) => {
   if (!win) return;
+  restoreWindowSizeIfNeeded();
   dragging = true;
   lastDragMoveAt = Date.now();
   detectRendererPointMode(pos);
@@ -429,6 +449,7 @@ function scheduleWalk() {
 }
 function startWalk() {
   if (!win || dragging || !settings.wander) { scheduleWalk(); return; }
+  restoreWindowSizeIfNeeded();
   let b = win.getBounds();
   const area = screen.getDisplayNearestPoint({ x: b.x + b.width / 2, y: b.y + b.height / 2 }).bounds;
   const dir = Math.random() < 0.5 ? -1 : 1;
