@@ -247,15 +247,18 @@
   // ---------- interaction ----------
   var ignoring = true;
   function setIgnore(ig) { if (ig !== ignoring) { ignoring = ig; window.petAPI && window.petAPI.setIgnore(ig); } }
-  var drag = { active: false, moved: false, sx: 0, sy: 0, lastX: 0, lastT: 0, vx: 0 };
+  var drag = { active: false, moved: false, sx: 0, sy: 0, screenX: 0, screenY: 0, lastX: 0, lastY: 0, lastT: 0, vx: 0 };
   var pendingHop = null;
 
   window.addEventListener('mousemove', function (e) {
     if (drag.active) {
-      if (Math.abs(e.screenX - drag.sx) + Math.abs(e.screenY - drag.sy) > 4) drag.moved = true;
-      var t = now(); if (t > drag.lastT) drag.vx = (e.screenX - drag.lastX) / (t - drag.lastT) * 16;
-      drag.lastX = e.screenX; drag.lastT = t;
-      window.petAPI && window.petAPI.dragMove(e.screenX, e.screenY);
+      var dx = Number.isFinite(e.movementX) ? e.movementX : e.screenX - drag.lastX;
+      var dy = Number.isFinite(e.movementY) ? e.movementY : e.screenY - drag.lastY;
+      drag.screenX += dx; drag.screenY += dy;
+      if (Math.abs(drag.screenX - drag.sx) + Math.abs(drag.screenY - drag.sy) > 4) drag.moved = true;
+      var t = now(); if (t > drag.lastT) drag.vx = dx / (t - drag.lastT) * 16;
+      drag.lastX = e.screenX; drag.lastY = e.screenY; drag.lastT = t;
+      window.petAPI && window.petAPI.dragMove(drag.screenX, drag.screenY);
       return;
     }
     setIgnore(!overPet(e.clientX, e.clientY));
@@ -264,8 +267,9 @@
   window.addEventListener('mousedown', function (e) {
     if (e.button !== 0 || !overPet(e.clientX, e.clientY)) return;
     drag.active = true; drag.moved = false;
-    drag.sx = e.screenX; drag.sy = e.screenY; drag.lastX = e.screenX; drag.lastT = now(); drag.vx = 0;
-    anim.dragging = true; window.petAPI && window.petAPI.dragStart(e.screenX, e.screenY);
+    drag.sx = e.screenX; drag.sy = e.screenY; drag.screenX = e.screenX; drag.screenY = e.screenY;
+    drag.lastX = e.screenX; drag.lastY = e.screenY; drag.lastT = now(); drag.vx = 0;
+    anim.dragging = true; window.petAPI && window.petAPI.dragStart(drag.screenX, drag.screenY);
     e.preventDefault();
   }, true);
 

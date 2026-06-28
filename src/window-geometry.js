@@ -75,6 +75,52 @@
     }), point);
   }
 
+  function sameArea(a, b) {
+    return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+  }
+
+  function insideRange(v, min, max) {
+    return v >= min && v < max;
+  }
+
+  function mergeAreas(a, b) {
+    const minX = Math.min(a.x, b.x);
+    const minY = Math.min(a.y, b.y);
+    const maxX = Math.max(a.x + a.width, b.x + b.width);
+    const maxY = Math.max(a.y + a.height, b.y + b.height);
+    return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+  }
+
+  function canMergeDragAreas(a, b, point) {
+    const p = { x: round(point && point.x), y: round(point && point.y) };
+    const aRight = a.x + a.width;
+    const bRight = b.x + b.width;
+    const aBottom = a.y + a.height;
+    const bBottom = b.y + b.height;
+    const overlapXMin = Math.max(a.x, b.x);
+    const overlapXMax = Math.min(aRight, bRight);
+    const overlapYMin = Math.max(a.y, b.y);
+    const overlapYMax = Math.min(aBottom, bBottom);
+
+    if ((aRight === b.x || bRight === a.x) && insideRange(p.y, overlapYMin, overlapYMax)) return true;
+    if ((aBottom === b.y || bBottom === a.y) && insideRange(p.x, overlapXMin, overlapXMax)) return true;
+    return false;
+  }
+
+  function dragAreaForBounds(displays, bounds, point) {
+    const areas = (displays || []).map(function (display) {
+      return display && (display.bounds || display.workArea || display);
+    });
+    const current = areaForPoint(areas, {
+      x: round(bounds.x) + round(bounds.width) / 2,
+      y: round(bounds.y) + round(bounds.height) / 2
+    });
+    const cursor = areaForPoint(areas, point);
+    if (sameArea(current, cursor)) return cursor;
+    if (canMergeDragAreas(current, cursor, point)) return mergeAreas(current, cursor);
+    return cursor;
+  }
+
   function resolveWalkPlan(bounds, area, preferredDir, distance, minDistance) {
     const current = clampWindowBounds(bounds, area);
     const minX = round(area.x);
@@ -93,18 +139,34 @@
   }
 
   function resolveDragBounds(bounds, area, cursor, offset) {
+    const width = Math.max(1, round(bounds.width));
+    const height = Math.max(1, round(bounds.height));
+    const cursorPoint = {
+      x: round(cursor.x),
+      y: round(cursor.y)
+    };
+    const currentOffset = {
+      x: clamp(round(offset.x), 0, width - 1),
+      y: clamp(round(offset.y), 0, height - 1)
+    };
+    const desired = {
+      x: cursorPoint.x - currentOffset.x,
+      y: cursorPoint.y - currentOffset.y,
+      width: width,
+      height: height
+    };
     const next = clampWindowBounds({
-      x: round(cursor.x) - round(offset.x),
-      y: round(cursor.y) - round(offset.y),
-      width: bounds.width,
-      height: bounds.height
+      x: desired.x,
+      y: desired.y,
+      width: desired.width,
+      height: desired.height
     }, area);
 
     return {
       bounds: next,
       offset: {
-        x: clamp(round(offset.x), 0, next.width),
-        y: clamp(round(offset.y), 0, next.height)
+        x: next.x === desired.x ? currentOffset.x : clamp(cursorPoint.x - next.x, 0, next.width - 1),
+        y: next.y === desired.y ? currentOffset.y : clamp(cursorPoint.y - next.y, 0, next.height - 1)
       }
     };
   }
@@ -122,6 +184,7 @@
     clampWindowBounds: clampWindowBounds,
     areaForPoint: areaForPoint,
     dragAreaForPoint: dragAreaForPoint,
+    dragAreaForBounds: dragAreaForBounds,
     resolveWalkPlan: resolveWalkPlan,
     resolveDragBounds: resolveDragBounds,
     getSpeechAnchor: getSpeechAnchor

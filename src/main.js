@@ -15,7 +15,7 @@
 const { app, BrowserWindow, ipcMain, Menu, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { clampWindowBounds, dragAreaForPoint, resolveDragBounds, resolveWalkPlan } = require('./window-geometry');
+const { clampWindowBounds, dragAreaForBounds, resolveDragBounds, resolveWalkPlan } = require('./window-geometry');
 
 // ---------- encrypted image vault ----------
 // Decrypt assets.pak once here in the main process (which has full Node access);
@@ -70,6 +70,11 @@ const settings = { follow: true, wander: true, onTop: true };
 
 let dragging = false;
 let dragOffset = { x: 0, y: 0 };
+let dragTimer = null;
+let lastDragMoveAt = 0;
+let lastDragCursor = null;
+let dragSize = null;
+let dragTrend = { x: 0, y: 0 };
 
 let walkTimer = null;    // active stroll stepper
 let walkPlan = null;     // scheduler for next stroll
@@ -113,6 +118,7 @@ function createWindow() {
 
   win.on('closed', () => {
     dragging = false;
+    stopDragPoll();
     win = null;
   });
 }
@@ -129,11 +135,14 @@ function workAreaForBounds(bounds) {
   }).workArea;
 }
 
-function workAreaForPoint(point) {
-  return dragAreaForPoint(screen.getAllDisplays(), point);
+function workAreaForDrag(bounds, point) {
+  return dragAreaForBounds(screen.getAllDisplays(), bounds, point);
 }
 
-function currentCursorPoint(fallback) {
+function currentCursorPoint(fallback, preferFallback) {
+  if (preferFallback && fallback && Number.isFinite(fallback.x) && Number.isFinite(fallback.y)) {
+    return { x: fallback.x, y: fallback.y };
+  }
   try {
     const point = screen.getCursorScreenPoint();
     if (Number.isFinite(point.x) && Number.isFinite(point.y)) return point;
@@ -144,12 +153,68 @@ function currentCursorPoint(fallback) {
   };
 }
 
-function moveDraggedWindow(cursor) {
+function moveDraggedWindow(cursor, trustCursor) {
   if (!win) return;
   const cur = win.getBounds();
-  const next = resolveDragBounds(cur, workAreaForPoint(cursor), cursor, dragOffset);
+  const dragBounds = {
+    x: cur.x,
+    y: cur.y,
+    width: dragSize ? dragSize.width : cur.width,
+    height: dragSize ? dragSize.height : cur.height
+  };
+  const point = normalizeDragCursor(cursor, dragBounds, trustCursor);
+  const area = workAreaForDrag(dragBounds, point);
+  const next = resolveDragBounds(dragBounds, area, point, dragOffset);
   dragOffset = next.offset;
-  win.setPosition(next.bounds.x, next.bounds.y);
+  if (next.bounds.x !== cur.x || next.bounds.y !== cur.y ||
+      next.bounds.width !== cur.width || next.bounds.height !== cur.height) {
+    win.setBounds(next.bounds);
+  }
+}
+
+function normalizeDragCursor(cursor, bounds, trustCursor) {
+  const point = { x: Math.round(cursor.x), y: Math.round(cursor.y) };
+  if (!lastDragCursor) {
+    lastDragCursor = point;
+    return point;
+  }
+  const maxJump = Math.max(160, Math.max(bounds.width, bounds.height) * 1.2);
+  const dx = point.x - lastDragCursor.x;
+  const dy = point.y - lastDragCursor.y;
+  if (!trustCursor && (Math.abs(dx) > maxJump || Math.abs(dy) > maxJump ||
+      (dragTrend.x > 0 && dx < -80) || (dragTrend.x < 0 && dx > 80) ||
+      (dragTrend.y > 0 && dy < -80) || (dragTrend.y < 0 && dy > 80))) {
+    return lastDragCursor;
+  }
+  if (Math.abs(dx) > 2) dragTrend.x = dx > 0 ? 1 : -1;
+  if (Math.abs(dy) > 2) dragTrend.y = dy > 0 ? 1 : -1;
+  lastDragCursor = point;
+  return point;
+}
+
+function clampDragOffset(offset, bounds) {
+  const maxX = Math.max(0, Math.round(bounds.width) - 1);
+  const maxY = Math.max(0, Math.round(bounds.height) - 1);
+  return {
+    x: Math.max(0, Math.min(Math.round(offset.x), maxX)),
+    y: Math.max(0, Math.min(Math.round(offset.y), maxY))
+  };
+}
+
+function stopDragPoll() {
+  if (dragTimer) {
+    clearInterval(dragTimer);
+    dragTimer = null;
+  }
+}
+
+function startDragPoll() {
+  stopDragPoll();
+  dragTimer = setInterval(() => {
+    if (!dragging || !win) return;
+    if (Date.now() - lastDragMoveAt < 80) return;
+    moveDraggedWindow(screen.getCursorScreenPoint(), false);
+  }, 16);
 }
 
 // ---------- sizing & placement ----------
@@ -183,17 +248,28 @@ function fitWindow(w, h) {
 ipcMain.on('drag:start', (_e, pos) => {
   if (!win) return;
   dragging = true;
-  const cursor = currentCursorPoint(pos);
+  lastDragMoveAt = Date.now();
+  const cursor = currentCursorPoint(pos, true);
   const b = win.getBounds();
-  dragOffset = { x: Math.round(cursor.x - b.x), y: Math.round(cursor.y - b.y) };
+  dragSize = { width: b.width, height: b.height };
+  lastDragCursor = { x: Math.round(cursor.x), y: Math.round(cursor.y) };
+  dragTrend = { x: 0, y: 0 };
+  dragOffset = clampDragOffset({ x: cursor.x - b.x, y: cursor.y - b.y }, b);
   stopWalk();
+  startDragPoll();
 });
 ipcMain.on('drag:move', (_e, pos) => {
   if (!dragging || !win) return;
-  moveDraggedWindow(currentCursorPoint(pos));
+  lastDragMoveAt = Date.now();
+  moveDraggedWindow(currentCursorPoint(pos, true), true);
 });
 ipcMain.on('drag:end', () => {
   dragging = false;
+  lastDragMoveAt = 0;
+  lastDragCursor = null;
+  dragSize = null;
+  dragTrend = { x: 0, y: 0 };
+  stopDragPoll();
 });
 
 // ---------- click-through ----------
