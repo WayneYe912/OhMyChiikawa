@@ -1,6 +1,6 @@
 {
   "name": "ohmychiikawa",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "Desktop pet for macOS & Windows. Ships with usagi.",
   "main": "src/main.js",
   "bin": {

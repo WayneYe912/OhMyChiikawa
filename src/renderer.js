@@ -21,6 +21,7 @@
   // resolve an image path to a decrypted data URL (Electron preload) or, when the
   // vault isn't present (raw dev tree / browser preview), the plain file path.
   var assetURL = function (p) { return (window.petAPI && window.petAPI.asset && window.petAPI.asset(p)) || p; };
+  var geometry = window.PetGeometry;
 
   var SCALES = { small: 150, medium: 200, large: 270 };
   var PAD = { top: 0.30, bottom: 0.06, side: 0.24 };
@@ -211,6 +212,15 @@
 
   // ---------- layout / window sizing ----------
   var box = { left: 0, top: 0, w: 0, h: 0, winW: 0, winH: 0 };
+  var speechAnchor = { left: null, top: null };
+  function updateSpeechAnchor(x, y) {
+    if (!speechEl || !geometry) return;
+    var next = geometry.getSpeechAnchor(box, { x: x || 0, y: y || 0 });
+    if (next.left === speechAnchor.left && next.top === speechAnchor.top) return;
+    speechAnchor = next;
+    speechEl.style.left = next.left + 'px';
+    speechEl.style.top = next.top + 'px';
+  }
   function layout() {
     var petH = Math.round(scaleH * (pet.renderScale || 1)), petW = Math.round(petH * (pet.aspect || 0.66));
     var topPad = Math.round(petH * PAD.top), botPad = Math.round(petH * PAD.bottom), sidePad = Math.round(petW * PAD.side);
@@ -218,6 +228,7 @@
     box.winW = petW + sidePad * 2; box.winH = petH + topPad + botPad;
     moveEl.style.left = box.left + 'px'; moveEl.style.top = box.top + 'px';
     moveEl.style.width = box.w + 'px'; moveEl.style.height = box.h + 'px';
+    updateSpeechAnchor(0, 0);
     if (window.petAPI) window.petAPI.fit(box.winW, box.winH);
   }
   layout();
@@ -411,6 +422,7 @@
     moveEl.style.transform =
       'translate(' + txp.toFixed(2) + 'px,' + ty.toFixed(2) + 'px) rotate(' + rot.toFixed(2) + 'deg) ' +
       'scale(' + (sx * anim.facing).toFixed(3) + ',' + sy.toFixed(3) + ')';
+    updateSpeechAnchor(txp, ty);
 
     // head nod (face click): a decaying squash from the feet pivot -> head dips
     if (anim.nodStart >= 0) {

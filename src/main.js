@@ -15,6 +15,7 @@
 const { app, BrowserWindow, ipcMain, Menu, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { clampWindowBounds, resolveWalkTargetX } = require('./window-geometry');
 
 // ---------- encrypted image vault ----------
 // Decrypt assets.pak once here in the main process (which has full Node access);
@@ -119,6 +120,29 @@ function applyOnTop() {
   win.setAlwaysOnTop(settings.onTop, 'floating');
 }
 
+function workAreaForBounds(bounds) {
+  return screen.getDisplayNearestPoint({
+    x: bounds.x + bounds.width / 2,
+    y: bounds.y + bounds.height / 2
+  }).workArea;
+}
+
+function clampBoundsToWorkArea(bounds) {
+  return clampWindowBounds(bounds, workAreaForBounds(bounds));
+}
+
+function setPositionWithinWorkArea(x, y) {
+  if (!win) return;
+  const cur = win.getBounds();
+  const next = clampBoundsToWorkArea({
+    x,
+    y,
+    width: cur.width,
+    height: cur.height
+  });
+  win.setPosition(next.x, next.y);
+}
+
 // ---------- sizing & placement ----------
 // Renderer measures the pet and asks for an exact window size (incl. motion
 // headroom). We keep the pet's bottom-centre anchored so menu resizes feel
@@ -141,10 +165,8 @@ function fitWindow(w, h) {
     x = Math.round(cur.x + cur.width / 2 - w / 2);
     y = Math.round(cur.y + cur.height - h);
   }
-  // keep on-screen
-  x = Math.min(Math.max(x, area.x), area.x + area.width - w);
-  y = Math.min(Math.max(y, area.y), area.y + area.height - h);
-  win.setBounds({ x, y, width: w, height: h });
+  const next = clampWindowBounds({ x, y, width: w, height: h }, area);
+  win.setBounds(next);
   if (!win.isVisible()) win.show();
 }
 
@@ -158,7 +180,7 @@ ipcMain.on('drag:start', (_e, pos) => {
 });
 ipcMain.on('drag:move', (_e, pos) => {
   if (!dragging || !win) return;
-  win.setPosition(
+  setPositionWithinWorkArea(
     winStart.x + Math.round(pos.x - dragAnchor.x),
     winStart.y + Math.round(pos.y - dragAnchor.y)
   );
@@ -288,7 +310,12 @@ function scheduleWalk() {
 }
 function startWalk() {
   if (!win || dragging || !settings.wander) { scheduleWalk(); return; }
-  const b = win.getBounds();
+  let b = win.getBounds();
+  const clamped = clampBoundsToWorkArea(b);
+  if (clamped.x !== b.x || clamped.y !== b.y) {
+    win.setBounds(clamped);
+    b = clamped;
+  }
   const area = screen.getDisplayNearestPoint({ x: b.x + b.width / 2, y: b.y + b.height / 2 }).workArea;
   // Prefer a direction that actually has room, so the pet doesn't "run" in place
   // against a screen edge (which made it look like only one direction animated).
@@ -298,8 +325,7 @@ function startWalk() {
   if (dir === 1 && roomRight < 60) dir = -1;
   else if (dir === -1 && roomLeft < 60) dir = 1;
   const distance = 80 + Math.random() * 220;
-  let targetX = b.x + dir * distance;
-  targetX = Math.min(Math.max(targetX, area.x), area.x + area.width - b.width);
+  const targetX = resolveWalkTargetX(b, area, b.x + dir * distance);
   const realDir = targetX >= b.x ? 1 : -1;
   win.webContents.send('pet:walk', { dir: realDir });
   const speed = PET_SPEED[currentPet] || 2; // usagi runs faster (it has a real run cycle)
@@ -309,7 +335,13 @@ function startWalk() {
     const cur = win.getBounds();
     const remaining = targetX - cur.x;
     if (Math.abs(remaining) <= speed) { stopWalk(); return; }
-    win.setPosition(Math.round(cur.x + Math.sign(remaining) * speed), cur.y);
+    const next = clampWindowBounds({
+      x: Math.round(cur.x + Math.sign(remaining) * speed),
+      y: cur.y,
+      width: cur.width,
+      height: cur.height
+    }, area);
+    win.setPosition(next.x, next.y);
   }, 16);
 }
 function stopWalk() {
