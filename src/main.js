@@ -15,7 +15,7 @@
 const { app, BrowserWindow, ipcMain, Menu, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { clampWindowBounds, resolveDragBounds, resolveWalkTargetX } = require('./window-geometry');
+const { clampWindowBounds, resolveDragBounds, resolveWalkPlan } = require('./window-geometry');
 
 // ---------- encrypted image vault ----------
 // Decrypt assets.pak once here in the main process (which has full Node access);
@@ -70,7 +70,7 @@ const settings = { follow: true, wander: true, onTop: true };
 
 let dragging = false;
 let dragOffset = { x: 0, y: 0 };
-let dragTimer = null;
+let dragArea = null;
 
 let walkTimer = null;    // active stroll stepper
 let walkPlan = null;     // scheduler for next stroll
@@ -114,7 +114,7 @@ function createWindow() {
 
   win.on('closed', () => {
     dragging = false;
-    stopDragTimer();
+    dragArea = null;
     win = null;
   });
 }
@@ -131,14 +131,6 @@ function workAreaForBounds(bounds) {
   }).workArea;
 }
 
-function workAreaForPoint(point) {
-  return screen.getDisplayNearestPoint(point).workArea;
-}
-
-function clampBoundsToWorkArea(bounds) {
-  return clampWindowBounds(bounds, workAreaForBounds(bounds));
-}
-
 function currentCursorPoint(fallback) {
   try {
     const point = screen.getCursorScreenPoint();
@@ -153,16 +145,9 @@ function currentCursorPoint(fallback) {
 function moveDraggedWindow(cursor) {
   if (!win) return;
   const cur = win.getBounds();
-  const next = resolveDragBounds(cur, workAreaForPoint(cursor), cursor, dragOffset);
+  const next = resolveDragBounds(cur, dragArea || workAreaForBounds(cur), cursor, dragOffset);
   dragOffset = next.offset;
   win.setPosition(next.bounds.x, next.bounds.y);
-}
-
-function stopDragTimer() {
-  if (dragTimer) {
-    clearInterval(dragTimer);
-    dragTimer = null;
-  }
 }
 
 // ---------- sizing & placement ----------
@@ -198,13 +183,9 @@ ipcMain.on('drag:start', (_e, pos) => {
   dragging = true;
   const cursor = currentCursorPoint(pos);
   const b = win.getBounds();
+  dragArea = workAreaForBounds(b);
   dragOffset = { x: Math.round(cursor.x - b.x), y: Math.round(cursor.y - b.y) };
   stopWalk();
-  stopDragTimer();
-  dragTimer = setInterval(() => {
-    if (!dragging) return;
-    moveDraggedWindow(currentCursorPoint());
-  }, 16);
 });
 ipcMain.on('drag:move', (_e, pos) => {
   if (!dragging || !win) return;
@@ -212,7 +193,7 @@ ipcMain.on('drag:move', (_e, pos) => {
 });
 ipcMain.on('drag:end', () => {
   dragging = false;
-  stopDragTimer();
+  dragArea = null;
 });
 
 // ---------- click-through ----------
@@ -339,36 +320,35 @@ function scheduleWalk() {
 function startWalk() {
   if (!win || dragging || !settings.wander) { scheduleWalk(); return; }
   let b = win.getBounds();
-  const clamped = clampBoundsToWorkArea(b);
-  if (clamped.x !== b.x || clamped.y !== b.y) {
-    win.setBounds(clamped);
-    b = clamped;
-  }
   const area = screen.getDisplayNearestPoint({ x: b.x + b.width / 2, y: b.y + b.height / 2 }).workArea;
-  // Prefer a direction that actually has room, so the pet doesn't "run" in place
-  // against a screen edge (which made it look like only one direction animated).
-  const roomLeft = b.x - area.x;
-  const roomRight = (area.x + area.width - b.width) - b.x;
-  let dir = Math.random() < 0.5 ? -1 : 1;
-  if (dir === 1 && roomRight < 60) dir = -1;
-  else if (dir === -1 && roomLeft < 60) dir = 1;
+  const dir = Math.random() < 0.5 ? -1 : 1;
   const distance = 80 + Math.random() * 220;
-  const targetX = resolveWalkTargetX(b, area, b.x + dir * distance);
-  const realDir = targetX >= b.x ? 1 : -1;
-  win.webContents.send('pet:walk', { dir: realDir });
   const speed = PET_SPEED[currentPet] || 2; // usagi runs faster (it has a real run cycle)
+  const plan = resolveWalkPlan(b, area, dir, distance, speed);
+  if (!plan) { stopWalk(); return; }
+  if (plan.bounds.x !== b.x || plan.bounds.y !== b.y) {
+    win.setBounds(plan.bounds);
+    b = plan.bounds;
+  }
+  const targetX = plan.targetX;
+  win.webContents.send('pet:walk', { dir: plan.dir });
   clearInterval(walkTimer);
   walkTimer = setInterval(() => {
     if (!win || dragging) { stopWalk(); return; }
     const cur = win.getBounds();
     const remaining = targetX - cur.x;
-    if (Math.abs(remaining) <= speed) { stopWalk(); return; }
+    if (Math.abs(remaining) <= speed) {
+      win.setPosition(targetX, cur.y);
+      stopWalk();
+      return;
+    }
     const next = clampWindowBounds({
       x: Math.round(cur.x + Math.sign(remaining) * speed),
       y: cur.y,
       width: cur.width,
       height: cur.height
     }, area);
+    if (next.x === cur.x) { stopWalk(); return; }
     win.setPosition(next.x, next.y);
   }, 16);
 }

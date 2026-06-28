@@ -27,14 +27,25 @@ test('clampWindowBounds supports displays with non-zero origins', () => {
   });
 });
 
-test('resolveWalkTargetX clamps a stroll target to the available horizontal range', () => {
+test('resolveWalkPlan skips a rightward walk when already at the right edge', () => {
   const area = { x: 0, y: 0, width: 800, height: 600 };
-  const bounds = { x: 620, y: 100, width: 220, height: 300 };
+  const bounds = { x: 560, y: 100, width: 240, height: 320 };
 
-  assert.equal(geometry.resolveWalkTargetX(bounds, area, bounds.x + 260), 580);
+  assert.equal(geometry.resolveWalkPlan(bounds, area, 1, 180, 3), null);
 });
 
-test('resolveDragBounds rebases the drag offset after clamping at the right edge', () => {
+test('resolveWalkPlan keeps a walk direction instead of flipping it at an edge', () => {
+  const area = { x: 0, y: 0, width: 800, height: 600 };
+  const bounds = { x: 540, y: 100, width: 240, height: 320 };
+
+  assert.deepEqual(geometry.resolveWalkPlan(bounds, area, 1, 180, 3), {
+    bounds: { x: 540, y: 100, width: 240, height: 320 },
+    targetX: 560,
+    dir: 1
+  });
+});
+
+test('resolveDragBounds keeps the original drag offset while clamped at the right edge', () => {
   const area = { x: 0, y: 0, width: 800, height: 600 };
   const bounds = { x: 400, y: 100, width: 240, height: 320 };
   const offset = { x: 50, y: 40 };
@@ -42,13 +53,13 @@ test('resolveDragBounds rebases the drag offset after clamping at the right edge
   const edge = geometry.resolveDragBounds(bounds, area, { x: 799, y: 140 }, offset);
   assert.deepEqual(edge, {
     bounds: { x: 560, y: 100, width: 240, height: 320 },
-    offset: { x: 239, y: 40 }
+    offset: { x: 50, y: 40 }
   });
 
   const back = geometry.resolveDragBounds(edge.bounds, area, { x: 789, y: 140 }, edge.offset);
   assert.deepEqual(back, {
-    bounds: { x: 550, y: 100, width: 240, height: 320 },
-    offset: { x: 239, y: 40 }
+    bounds: { x: 560, y: 100, width: 240, height: 320 },
+    offset: { x: 50, y: 40 }
   });
 });
 

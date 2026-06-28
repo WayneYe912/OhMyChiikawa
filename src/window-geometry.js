@@ -31,13 +31,21 @@
     };
   }
 
-  function resolveWalkTargetX(bounds, area, desiredX) {
-    return clampWindowBounds({
-      x: desiredX,
-      y: bounds.y,
-      width: bounds.width,
-      height: bounds.height
-    }, area).x;
+  function resolveWalkPlan(bounds, area, preferredDir, distance, minDistance) {
+    const current = clampWindowBounds(bounds, area);
+    const minX = round(area.x);
+    const maxX = minX + Math.max(0, round(area.width) - current.width);
+    const dir = preferredDir < 0 ? -1 : 1;
+    const room = dir > 0 ? maxX - current.x : current.x - minX;
+    const travel = Math.min(Math.max(0, round(distance)), Math.max(0, room));
+    const minTravel = Math.max(1, round(minDistance || 1));
+
+    if (travel < minTravel) return null;
+    return {
+      bounds: current,
+      targetX: current.x + dir * travel,
+      dir: dir
+    };
   }
 
   function resolveDragBounds(bounds, area, cursor, offset) {
@@ -51,8 +59,8 @@
     return {
       bounds: next,
       offset: {
-        x: clamp(round(cursor.x) - next.x, 0, next.width),
-        y: clamp(round(cursor.y) - next.y, 0, next.height)
+        x: clamp(round(offset.x), 0, next.width),
+        y: clamp(round(offset.y), 0, next.height)
       }
     };
   }
@@ -68,7 +76,7 @@
 
   return {
     clampWindowBounds: clampWindowBounds,
-    resolveWalkTargetX: resolveWalkTargetX,
+    resolveWalkPlan: resolveWalkPlan,
     resolveDragBounds: resolveDragBounds,
     getSpeechAnchor: getSpeechAnchor
   };
