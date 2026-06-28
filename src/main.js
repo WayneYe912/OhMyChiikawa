@@ -75,6 +75,7 @@ let lastDragMoveAt = 0;
 let lastDragCursor = null;
 let dragSize = null;
 let dragTrend = { x: 0, y: 0 };
+let dragRendererPointIsPhysical = false;
 
 let walkTimer = null;    // active stroll stepper
 let walkPlan = null;     // scheduler for next stroll
@@ -139,9 +140,40 @@ function workAreaForDrag(bounds, point) {
   return dragAreaForBounds(screen.getAllDisplays(), bounds, point);
 }
 
+function pointDistanceSq(a, b) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return dx * dx + dy * dy;
+}
+
+function normalizeRendererPoint(point) {
+  const raw = {
+    x: point && Number.isFinite(point.x) ? point.x : 0,
+    y: point && Number.isFinite(point.y) ? point.y : 0
+  };
+  if (dragRendererPointIsPhysical && screen.screenToDipPoint) {
+    try {
+      const dip = screen.screenToDipPoint(raw);
+      if (Number.isFinite(dip.x) && Number.isFinite(dip.y)) return dip;
+    } catch (e) {}
+  }
+  return raw;
+}
+
+function detectRendererPointMode(point) {
+  dragRendererPointIsPhysical = false;
+  if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y) || !screen.screenToDipPoint) return;
+  try {
+    const raw = { x: point.x, y: point.y };
+    const dip = screen.screenToDipPoint(raw);
+    const cursor = screen.getCursorScreenPoint();
+    dragRendererPointIsPhysical = pointDistanceSq(dip, cursor) + 4 < pointDistanceSq(raw, cursor);
+  } catch (e) {}
+}
+
 function currentCursorPoint(fallback, preferFallback) {
   if (preferFallback && fallback && Number.isFinite(fallback.x) && Number.isFinite(fallback.y)) {
-    return { x: fallback.x, y: fallback.y };
+    return normalizeRendererPoint(fallback);
   }
   try {
     const point = screen.getCursorScreenPoint();
@@ -249,6 +281,7 @@ ipcMain.on('drag:start', (_e, pos) => {
   if (!win) return;
   dragging = true;
   lastDragMoveAt = Date.now();
+  detectRendererPointMode(pos);
   const cursor = currentCursorPoint(pos, true);
   const b = win.getBounds();
   dragSize = { width: b.width, height: b.height };
@@ -269,6 +302,7 @@ ipcMain.on('drag:end', () => {
   lastDragCursor = null;
   dragSize = null;
   dragTrend = { x: 0, y: 0 };
+  dragRendererPointIsPhysical = false;
   stopDragPoll();
 });
 
@@ -396,15 +430,15 @@ function scheduleWalk() {
 function startWalk() {
   if (!win || dragging || !settings.wander) { scheduleWalk(); return; }
   let b = win.getBounds();
-  const area = screen.getDisplayNearestPoint({ x: b.x + b.width / 2, y: b.y + b.height / 2 }).workArea;
+  const area = screen.getDisplayNearestPoint({ x: b.x + b.width / 2, y: b.y + b.height / 2 }).bounds;
   const dir = Math.random() < 0.5 ? -1 : 1;
   const distance = 80 + Math.random() * 220;
   const speed = PET_SPEED[currentPet] || 2; // usagi runs faster (it has a real run cycle)
   const plan = resolveWalkPlan(b, area, dir, distance, speed);
   if (!plan) { stopWalk(); return; }
-  if (plan.bounds.x !== b.x || plan.bounds.y !== b.y) {
-    win.setBounds(plan.bounds);
-    b = plan.bounds;
+  if (plan.bounds.x !== b.x) {
+    win.setPosition(plan.bounds.x, b.y);
+    b = Object.assign({}, b, { x: plan.bounds.x });
   }
   const targetX = plan.targetX;
   win.webContents.send('pet:walk', { dir: plan.dir });
@@ -420,12 +454,12 @@ function startWalk() {
     }
     const next = clampWindowBounds({
       x: Math.round(cur.x + Math.sign(remaining) * speed),
-      y: cur.y,
+      y: b.y,
       width: cur.width,
       height: cur.height
     }, area);
     if (next.x === cur.x) { stopWalk(); return; }
-    win.setPosition(next.x, next.y);
+    win.setPosition(next.x, cur.y);
   }, 16);
 }
 function stopWalk() {
