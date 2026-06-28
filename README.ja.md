@@ -30,6 +30,8 @@ OhMyChiikawa は macOS と Windows 向けの軽量デスクトップペットで
 
 日常利用には Releases ページで配布されている DMG インストーラの使用を推奨します。
 
+代替ダウンロード先：[百度网盘](https://pan.baidu.com/s/1-G07TOu_xHGDuVjOOsOVew?pwd=wgd3)
+
 1. プロジェクトの Releases ページを開き、お使いの Mac に合うインストーラをダウンロードします。
    - Apple Silicon：`OhMyChiikawa-<version>-arm64.dmg`
    - Intel：`OhMyChiikawa-<version>-x64.dmg`
@@ -42,12 +44,7 @@ OhMyChiikawa は macOS と Windows 向けの軽量デスクトップペットで
    xattr -dr com.apple.quarantine /Applications/OhMyChiikawa.app
    ```
 
-インストーラには次の補助ファイルも含まれています。
-
-- `READ-ME-FIRST.txt`：インストールと初回起動の説明。
-- `install-cli.command`：任意のコマンドラインランチャーインストーラ。ターミナルから `chiikawa` コマンドで起動したい場合だけダブルクリックしてください。
-
-ターミナルから起動したい場合は、先にインストーラ内の `install-cli.command` をダブルクリックしてください。その後、次のコマンドを使えます。
+`chiikawa` コマンドを有効にしている場合は、ターミナルからも起動できます。
 
 ```bash
 chiikawa
@@ -60,24 +57,23 @@ chiikawa --scale=large
 
 Releases ページで配布されている NSIS インストーラの使用を推奨します。
 
+代替ダウンロード先：[百度网盘](https://pan.baidu.com/s/1-G07TOu_xHGDuVjOOsOVew?pwd=wgd3)
+
 1. プロジェクトの Releases ページを開き、Windows 用インストーラをダウンロードします。
    - `OhMyChiikawa-<version>-win-x64.exe`（インストール版）
    - `OhMyChiikawa-<version>-portable-x64.exe`（ポータブル版、インストール不要）
 2. インストーラを実行し、セットアップウィザードに従ってインストールします。
 3. インストール後、スタートメニューまたはデスクトップショートカットから **OhMyChiikawa** を起動します。
 
-インストール先には次の補助ファイルが含まれます。
-
-- `READ-ME-FIRST.txt`：インストールと初回起動の説明。
-- `install-cli.bat`：コマンドラインランチャーのインストールスクリプト。実行すると `chiikawa` コマンドをシステム PATH に追加できます。
-
-コマンドラインから起動したい場合は、インストール先の `install-cli.bat` を先に実行してください。その後、**新しい** コマンドプロンプトまたは PowerShell を開き、次を実行できます。
+インストール時に `chiikawa` コマンドを PATH に追加できます。有効にした場合は、**新しい** コマンドプロンプトまたは PowerShell を開き、次を実行できます。
 
 ```batch
 chiikawa
-chiikawa --size=small
-chiikawa --size=medium
+chiikawa --size small
+chiikawa --pet usagi
 ```
+
+`chiikawa` は `OhMyChiikawa.exe` の軽量ランチャーで、**Node.js は不要**です。
 
 ### ソースから起動（macOS / Windows 共通）
 
@@ -127,13 +123,8 @@ node chiikawa.js --size small
 
 OhMyChiikawa は macOS と Windows をサポートしています。
 
-- **macOS**：DMG インストーラ（arm64 / x64）を提供しています。Releases ページからのダウンロードを推奨します。インストーラには初回起動の説明と任意の CLI インストーラが含まれ、`chiikawa` コマンドでの起動にも対応しています。
-- **Windows**：NSIS インストーラとポータブル版（どちらも x64）を提供しています。インストール先の `install-cli.bat` を実行すると、`chiikawa` コマンドで起動できます。
-- **ビルドコマンド**：
-  - macOS：`npm run dist:mac`
-  - Windows：`npm run dist:win`（Windows 環境で実行、またはクロスコンパイル）
-  - Windows NSIS：`npm run dist:win:nsis`
-  - Windows ポータブル版：`npm run dist:win:portable`
+- **macOS**：DMG インストーラ（arm64 / x64）を提供しています。Releases ページからのダウンロードを推奨します。
+- **Windows**：NSIS インストーラとポータブル版（どちらも x64）を提供しています。
 
 ## ロードマップ
 
