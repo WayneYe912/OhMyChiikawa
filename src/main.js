@@ -15,6 +15,7 @@
 const { app, BrowserWindow, ipcMain, Menu, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { clampWindowBounds, dragAreaForBounds, resolveDragBounds, resolveWalkPlan } = require('./window-geometry');
 
 // ---------- encrypted image vault ----------
 // Decrypt assets.pak once here in the main process (which has full Node access);
@@ -68,8 +69,13 @@ let win = null;
 const settings = { follow: true, wander: true, onTop: true };
 
 let dragging = false;
-let dragAnchor = { x: 0, y: 0 };
-let winStart = { x: 0, y: 0 };
+let dragOffset = { x: 0, y: 0 };
+let dragTimer = null;
+let lastDragMoveAt = 0;
+let lastDragCursor = null;
+let dragSize = null;
+let dragTrend = { x: 0, y: 0 };
+let dragRendererPointIsPhysical = false;
 
 let walkTimer = null;    // active stroll stepper
 let walkPlan = null;     // scheduler for next stroll
@@ -111,12 +117,136 @@ function createWindow() {
   // start click-through; the renderer turns it off while the cursor is on the pet
   win.setIgnoreMouseEvents(true, { forward: true });
 
-  win.on('closed', () => { win = null; });
+  win.on('closed', () => {
+    dragging = false;
+    stopDragPoll();
+    win = null;
+  });
 }
 
 function applyOnTop() {
   if (!win) return;
   win.setAlwaysOnTop(settings.onTop, 'floating');
+}
+
+function workAreaForBounds(bounds) {
+  return screen.getDisplayNearestPoint({
+    x: bounds.x + bounds.width / 2,
+    y: bounds.y + bounds.height / 2
+  }).workArea;
+}
+
+function workAreaForDrag(bounds, point) {
+  return dragAreaForBounds(screen.getAllDisplays(), bounds, point);
+}
+
+function pointDistanceSq(a, b) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return dx * dx + dy * dy;
+}
+
+function normalizeRendererPoint(point) {
+  const raw = {
+    x: point && Number.isFinite(point.x) ? point.x : 0,
+    y: point && Number.isFinite(point.y) ? point.y : 0
+  };
+  if (dragRendererPointIsPhysical && screen.screenToDipPoint) {
+    try {
+      const dip = screen.screenToDipPoint(raw);
+      if (Number.isFinite(dip.x) && Number.isFinite(dip.y)) return dip;
+    } catch (e) {}
+  }
+  return raw;
+}
+
+function detectRendererPointMode(point) {
+  dragRendererPointIsPhysical = false;
+  if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y) || !screen.screenToDipPoint) return;
+  try {
+    const raw = { x: point.x, y: point.y };
+    const dip = screen.screenToDipPoint(raw);
+    const cursor = screen.getCursorScreenPoint();
+    dragRendererPointIsPhysical = pointDistanceSq(dip, cursor) + 4 < pointDistanceSq(raw, cursor);
+  } catch (e) {}
+}
+
+function currentCursorPoint(fallback, preferFallback) {
+  if (preferFallback && fallback && Number.isFinite(fallback.x) && Number.isFinite(fallback.y)) {
+    return normalizeRendererPoint(fallback);
+  }
+  try {
+    const point = screen.getCursorScreenPoint();
+    if (Number.isFinite(point.x) && Number.isFinite(point.y)) return point;
+  } catch (e) {}
+  return {
+    x: fallback && Number.isFinite(fallback.x) ? fallback.x : 0,
+    y: fallback && Number.isFinite(fallback.y) ? fallback.y : 0
+  };
+}
+
+function moveDraggedWindow(cursor, trustCursor) {
+  if (!win) return;
+  const cur = win.getBounds();
+  const dragBounds = {
+    x: cur.x,
+    y: cur.y,
+    width: dragSize ? dragSize.width : cur.width,
+    height: dragSize ? dragSize.height : cur.height
+  };
+  const point = normalizeDragCursor(cursor, dragBounds, trustCursor);
+  const area = workAreaForDrag(dragBounds, point);
+  const next = resolveDragBounds(dragBounds, area, point, dragOffset);
+  dragOffset = next.offset;
+  if (next.bounds.x !== cur.x || next.bounds.y !== cur.y ||
+      next.bounds.width !== cur.width || next.bounds.height !== cur.height) {
+    win.setBounds(next.bounds);
+  }
+}
+
+function normalizeDragCursor(cursor, bounds, trustCursor) {
+  const point = { x: Math.round(cursor.x), y: Math.round(cursor.y) };
+  if (!lastDragCursor) {
+    lastDragCursor = point;
+    return point;
+  }
+  const maxJump = Math.max(160, Math.max(bounds.width, bounds.height) * 1.2);
+  const dx = point.x - lastDragCursor.x;
+  const dy = point.y - lastDragCursor.y;
+  if (!trustCursor && (Math.abs(dx) > maxJump || Math.abs(dy) > maxJump ||
+      (dragTrend.x > 0 && dx < -80) || (dragTrend.x < 0 && dx > 80) ||
+      (dragTrend.y > 0 && dy < -80) || (dragTrend.y < 0 && dy > 80))) {
+    return lastDragCursor;
+  }
+  if (Math.abs(dx) > 2) dragTrend.x = dx > 0 ? 1 : -1;
+  if (Math.abs(dy) > 2) dragTrend.y = dy > 0 ? 1 : -1;
+  lastDragCursor = point;
+  return point;
+}
+
+function clampDragOffset(offset, bounds) {
+  const maxX = Math.max(0, Math.round(bounds.width) - 1);
+  const maxY = Math.max(0, Math.round(bounds.height) - 1);
+  return {
+    x: Math.max(0, Math.min(Math.round(offset.x), maxX)),
+    y: Math.max(0, Math.min(Math.round(offset.y), maxY))
+  };
+}
+
+function stopDragPoll() {
+  if (dragTimer) {
+    clearInterval(dragTimer);
+    dragTimer = null;
+  }
+}
+
+function startDragPoll() {
+  stopDragPoll();
+  dragTimer = setInterval(() => {
+    if (!dragging || !win) return;
+    if (Date.now() - lastDragMoveAt < 80) return;
+    moveDraggedWindow(screen.getCursorScreenPoint(), false);
+  }, 16);
 }
 
 // ---------- sizing & placement ----------
@@ -141,29 +271,40 @@ function fitWindow(w, h) {
     x = Math.round(cur.x + cur.width / 2 - w / 2);
     y = Math.round(cur.y + cur.height - h);
   }
-  // keep on-screen
-  x = Math.min(Math.max(x, area.x), area.x + area.width - w);
-  y = Math.min(Math.max(y, area.y), area.y + area.height - h);
-  win.setBounds({ x, y, width: w, height: h });
+  const next = clampWindowBounds({ x, y, width: w, height: h }, area);
+  win.setBounds(next);
   if (!win.isVisible()) win.show();
 }
 
 // ---------- dragging ----------
 ipcMain.on('drag:start', (_e, pos) => {
+  if (!win) return;
   dragging = true;
-  dragAnchor = pos;
+  lastDragMoveAt = Date.now();
+  detectRendererPointMode(pos);
+  const cursor = currentCursorPoint(pos, true);
   const b = win.getBounds();
-  winStart = { x: b.x, y: b.y };
+  dragSize = { width: b.width, height: b.height };
+  lastDragCursor = { x: Math.round(cursor.x), y: Math.round(cursor.y) };
+  dragTrend = { x: 0, y: 0 };
+  dragOffset = clampDragOffset({ x: cursor.x - b.x, y: cursor.y - b.y }, b);
   stopWalk();
+  startDragPoll();
 });
 ipcMain.on('drag:move', (_e, pos) => {
   if (!dragging || !win) return;
-  win.setPosition(
-    winStart.x + Math.round(pos.x - dragAnchor.x),
-    winStart.y + Math.round(pos.y - dragAnchor.y)
-  );
+  lastDragMoveAt = Date.now();
+  moveDraggedWindow(currentCursorPoint(pos, true), true);
 });
-ipcMain.on('drag:end', () => { dragging = false; });
+ipcMain.on('drag:end', () => {
+  dragging = false;
+  lastDragMoveAt = 0;
+  lastDragCursor = null;
+  dragSize = null;
+  dragTrend = { x: 0, y: 0 };
+  dragRendererPointIsPhysical = false;
+  stopDragPoll();
+});
 
 // ---------- click-through ----------
 ipcMain.on('hit:ignore', (_e, ignore) => {
@@ -288,28 +429,37 @@ function scheduleWalk() {
 }
 function startWalk() {
   if (!win || dragging || !settings.wander) { scheduleWalk(); return; }
-  const b = win.getBounds();
-  const area = screen.getDisplayNearestPoint({ x: b.x + b.width / 2, y: b.y + b.height / 2 }).workArea;
-  // Prefer a direction that actually has room, so the pet doesn't "run" in place
-  // against a screen edge (which made it look like only one direction animated).
-  const roomLeft = b.x - area.x;
-  const roomRight = (area.x + area.width - b.width) - b.x;
-  let dir = Math.random() < 0.5 ? -1 : 1;
-  if (dir === 1 && roomRight < 60) dir = -1;
-  else if (dir === -1 && roomLeft < 60) dir = 1;
+  let b = win.getBounds();
+  const area = screen.getDisplayNearestPoint({ x: b.x + b.width / 2, y: b.y + b.height / 2 }).bounds;
+  const dir = Math.random() < 0.5 ? -1 : 1;
   const distance = 80 + Math.random() * 220;
-  let targetX = b.x + dir * distance;
-  targetX = Math.min(Math.max(targetX, area.x), area.x + area.width - b.width);
-  const realDir = targetX >= b.x ? 1 : -1;
-  win.webContents.send('pet:walk', { dir: realDir });
   const speed = PET_SPEED[currentPet] || 2; // usagi runs faster (it has a real run cycle)
+  const plan = resolveWalkPlan(b, area, dir, distance, speed);
+  if (!plan) { stopWalk(); return; }
+  if (plan.bounds.x !== b.x) {
+    win.setPosition(plan.bounds.x, b.y);
+    b = Object.assign({}, b, { x: plan.bounds.x });
+  }
+  const targetX = plan.targetX;
+  win.webContents.send('pet:walk', { dir: plan.dir });
   clearInterval(walkTimer);
   walkTimer = setInterval(() => {
     if (!win || dragging) { stopWalk(); return; }
     const cur = win.getBounds();
     const remaining = targetX - cur.x;
-    if (Math.abs(remaining) <= speed) { stopWalk(); return; }
-    win.setPosition(Math.round(cur.x + Math.sign(remaining) * speed), cur.y);
+    if (Math.abs(remaining) <= speed) {
+      win.setPosition(targetX, cur.y);
+      stopWalk();
+      return;
+    }
+    const next = clampWindowBounds({
+      x: Math.round(cur.x + Math.sign(remaining) * speed),
+      y: b.y,
+      width: cur.width,
+      height: cur.height
+    }, area);
+    if (next.x === cur.x) { stopWalk(); return; }
+    win.setPosition(next.x, cur.y);
   }, 16);
 }
 function stopWalk() {
