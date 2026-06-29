@@ -1,0 +1,14 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b3019d8edabfa0bdf53a83e33f7f9d23206c878b",
+  "prompts": {},
+  "humans": {
+    "h_6507e902a56408": {
+      "author": "WayneYe <wayneye@foxmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
