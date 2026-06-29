@@ -2,7 +2,7 @@
 
 **Language:** [简体中文](README.md) | [English](README.en.md) | [日本語](README.ja.md)
 
-OhMyChiikawa is a lightweight desktop pet for macOS and Windows. After launch, the default character **Usagi** appears on your desktop, and you can switch to **Chiikawa** or **Hachiware** anytime from the right-click menu. All three characters can be dragged around, clicked on different body parts, follow the cursor, wander occasionally, and play idle animations such as blinking and subtle ear movement.
+OhMyChiikawa is a lightweight desktop pet for macOS and Windows. After launch, the default character **Usagi** appears on your desktop, and you can switch to **Chiikawa**, **Hachiware**, or **Momonga** anytime from the right-click menu. All four characters can be dragged around, clicked on different body parts, follow the cursor, wander occasionally, and play idle animations such as blinking and subtle ear movement.
 
 ## Preview
 
@@ -12,7 +12,7 @@ OhMyChiikawa is a lightweight desktop pet for macOS and Windows. After launch, t
 
 ## Features
 
-- Multiple characters: **Usagi**, **Chiikawa**, and **Hachiware** are built in; switch anytime from the context menu, and your last choice is remembered.
+- Multiple characters: **Usagi**, **Chiikawa**, **Hachiware**, and **Momonga** are built in; switch anytime from the context menu, and your last choice is remembered.
 - Three interface languages: switch between 中文 / English / 日本語 from the context menu; menu text and character speech follow the selected language, and the choice is remembered.
 - Transparent, frameless, and always on top by default.
 - Drag to place the pet anywhere on the desktop.
@@ -110,7 +110,7 @@ The script checks local dependencies before launch. If dependencies are missing,
 | Click arm | Play the hand-rolling action (Usagi only) |
 | Double-click pet | Play the hand-rolling action for about 2 seconds (Usagi only) |
 | Right-click pet | Open the context menu |
-| Menu: Character | Switch between Usagi, Chiikawa, and Hachiware (remembered) |
+| Menu: Character | Switch between Usagi, Chiikawa, Hachiware, and Momonga (remembered) |
 | Menu: Language | Switch 中文 / English / 日本語 (remembered) |
 | Menu: Follow cursor | Toggle cursor following |
 | Menu: Wander | Toggle random walking |
@@ -157,4 +157,4 @@ Right-click the pet and choose the quit menu item.
 
 Project code is licensed under the MIT License.
 
-The characters in this project, Chiikawa, Usagi, and Hachiware, come from the Japanese animation Chiikawa. The character copyright belongs to Chiikawa. Bundled image assets are for personal desktop-pet use; make sure you have the right to use any assets you replace or redistribute.
+The characters in this project, Chiikawa, Usagi, Hachiware, and Momonga, come from the Japanese animation Chiikawa. The character copyright belongs to Chiikawa. Bundled image assets are for personal desktop-pet use; make sure you have the right to use any assets you replace or redistribute.
