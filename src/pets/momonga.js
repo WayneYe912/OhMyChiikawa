@@ -19,6 +19,7 @@
     natural: { w: 1080, h: 1080 },
     renderScale: 0.82,
     articulated: true,
+    animateEars: false,
     body: 'images/momonga/body.png',
     ears: [
       { src: 'images/momonga/ear-left.png', side: 'l',

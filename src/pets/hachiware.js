@@ -5,9 +5,7 @@
  *
  * The blue "ears" are one connected fringe rather than two separate appendages,
  * so the body layer keeps the WHOLE character (blue included) and the ear layers
- * are copies that sit exactly on top. That way an ear wiggle reveals the body's
- * own blue underneath (a faint same-colour ghost at most) instead of punching a
- * transparent hole through the head — far cleaner for a joined-up hairpiece.
+ * are static overlays. Ear motion is disabled for this pet; blink lids remain.
  *
  * Artwork is sliced from src/images/hachiware.png (baked light-grey background
  * removed via the enclosing outline, ears cut into their own transparent layers)
@@ -27,6 +25,7 @@
     // tower over the tall usagi at the same Size setting.
     renderScale: 0.8,
     articulated: true,
+    animateEars: false,
     body: 'images/hachiware/body.png',
     ears: [
       { src: 'images/hachiware/ear-left.png',  side: 'l',

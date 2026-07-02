@@ -70,7 +70,7 @@
     wrap.appendChild(mkImg(pet.body, 'part body', null, null));
     pet.ears.forEach(function (e) {
       var el = mkImg(e.src, 'part ear ear-' + e.side, e.box, e.origin);
-      ears.push({ el: el, sign: e.side === 'l' ? 1 : -1 });
+      if (pet.animateEars !== false) ears.push({ el: el, sign: e.side === 'l' ? 1 : -1 });
       wrap.appendChild(el);
     });
     pet.eyes.forEach(function (e, i) {
