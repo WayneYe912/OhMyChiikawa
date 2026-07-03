@@ -143,7 +143,8 @@
   contentEl.appendChild(actionImg);
 
   // ---------- run cycle (looping frames shown while the pet walks) ----------
-  // A pet may define pet.walk = { base, count, pad, ext, start, fps }. The frames
+  // A pet may define pet.walk = { base, count, pad, ext, start, fps } or provide
+  // an explicit sequence/offsetY for a pet-specific gait. The frames
   // share the action-overlay framing (bottom-anchored, height:100%, width:auto),
   // so they stay the same on-screen height as the standing pose. Left/right facing
   // is handled by the existing #layer-move flip (anim.facing), so the run art only
@@ -152,10 +153,16 @@
   runImg.className = 'run-img'; runImg.draggable = false;
   contentEl.appendChild(runImg);
   var runFrames = [];
+  var runFrameKeys = [];
   if (pet.walk) {
-    for (var rf = 0; rf < pet.walk.count; rf++) {
+    if (pet.walk.sequence) runFrameKeys = pet.walk.sequence.slice();
+    else {
+      for (var rk = 0; rk < pet.walk.count; rk++)
+        runFrameKeys.push(String(rk + (pet.walk.start || 0)).padStart(pet.walk.pad || 2, '0'));
+    }
+    for (var rf = 0; rf < runFrameKeys.length; rf++) {
       var rim = new Image();
-      rim.src = assetURL(pet.walk.base + String(rf + (pet.walk.start || 0)).padStart(pet.walk.pad || 2, '0') + pet.walk.ext);
+      rim.src = assetURL(pet.walk.base + runFrameKeys[rf] + pet.walk.ext);
       runFrames.push(rim);
     }
   }
@@ -165,7 +172,11 @@
     running = true; runIdx = 0; contentEl.classList.add('running');
     var fps = pet.walk.fps || 9;
     (function step() {
-      runImg.src = runFrames[runIdx % pet.walk.count].src; runIdx++;
+      var frameIdx = runIdx % runFrames.length;
+      runImg.src = runFrames[frameIdx].src;
+      var y = pet.walk.offsetY ? (pet.walk.offsetY[frameIdx] || 0) : 0;
+      runImg.style.transform = 'translate(-50%, ' + y + 'px)';
+      runIdx++;
       runTimer = setTimeout(step, 1000 / fps);
     })();
   }
@@ -400,8 +411,8 @@
       rot += anim.lookCur.x * 3.2; txp += anim.lookCur.x * 3.0; ty += anim.lookCur.y * 2.0;
     }
 
-    // Walk bob/sway is the "fake" locomotion for pets WITHOUT a run animation
-    // (e.g. chiikawa). A pet playing a real run cycle (running) skips it, so the
+    // Walk bob/sway is the "fake" locomotion for pets WITHOUT a run animation.
+    // A pet playing a real run cycle (running) skips it, so the
     // frames alone convey the motion — no extra left/right wobble.
     if (anim.walking && !running) {
       anim.walkPhase += 0.28;

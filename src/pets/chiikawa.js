@@ -40,6 +40,17 @@
       zh: ['Hmm！', '诶？', '呀𠳐𠳐～', '嘿～', '呜'],
       en: ['Hmm!', 'Eh?', 'Yahaha~', 'Hey~', 'Woo'],
       ja: ['んー！', 'えっ？', 'やはは～', 'やぁ～', 'うぅ']
+    },
+    // Run cycle played while walking across the screen. offsetY adds a very
+    // small hop to chiikawa's gait without affecting other pets' run cycles.
+    walk: {
+      base: 'images/chiikawa_run/chiikawa_run_',
+      count: 12,
+      pad: 2,
+      ext: '.png',
+      start: 2,
+      fps: 11,
+      offsetY: [-2, -1, 0, 0, -1, -2, -1, 0, 0, 0, 0, -1]
     }
   };
   var api = (typeof window !== 'undefined') ? window : globalThis;
