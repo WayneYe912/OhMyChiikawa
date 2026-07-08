@@ -1,0 +1,31 @@
+src/pets/hachiware.js
+  s_cbac9bbfe6e2b3::t_24d4402b0b8f17 48-51
+src/renderer.js
+  s_9878c2ef29b977::t_1cccebf790bf2c 199-202,208,212-217,235-237,315-323,385-393,399,405-408,445
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "89ef0c5f47ce4a8a247a6be0a0456d3fd7a819b6",
+  "prompts": {},
+  "sessions": {
+    "s_9878c2ef29b977": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3ca6-310a-7b00-a7dd-342091071aba",
+        "model": "unknown"
+      },
+      "human_author": "WayneYe <wayneye@foxmail.com>"
+    },
+    "s_cbac9bbfe6e2b3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4211-a7b8-7643-b782-d979a0733acf",
+        "model": "unknown"
+      },
+      "human_author": "WayneYe <wayneye@foxmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
