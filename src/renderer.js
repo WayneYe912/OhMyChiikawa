@@ -207,16 +207,25 @@
       var n = pet.frames.count, total = n * (a.loops || 1), i = 0, fps = a.fps || 10, idleIdx = pet.idle || 0;
       (function step() {
         seqImg.src = seqFrames[i % n].src;
-        if (++i >= total) { seqImg.src = seqFrames[idleIdx].src; acting = false; return; }
+        if (++i >= total) {
+          actTimer = setTimeout(function () { seqImg.src = seqFrames[idleIdx].src; acting = false; }, 1000 / fps);
+          return;
+        }
         actTimer = setTimeout(step, 1000 / fps);
       })();
       return;
     }
     contentEl.classList.add('acting');
+    actionImg.style.height = ((a.scale || 1) * 100) + '%';
     var total2 = a.count * (a.loops || 1), j = 0, fps2 = a.fps || 10;
     (function step() {
       actionImg.src = actionFrames[name][j % a.count].src;
-      if (++j >= total2) { acting = false; contentEl.classList.remove('acting'); return; }
+      if (++j >= total2) {
+        actTimer = setTimeout(function () {
+          acting = false; contentEl.classList.remove('acting'); actionImg.style.height = '100%';
+        }, 1000 / fps2);
+        return;
+      }
       actTimer = setTimeout(step, 1000 / fps2);
     })();
   }
@@ -234,7 +243,9 @@
   }
   function layout() {
     var petH = Math.round(scaleH * (pet.renderScale || 1)), petW = Math.round(petH * (pet.aspect || 0.66));
-    var topPad = Math.round(petH * PAD.top), botPad = Math.round(petH * PAD.bottom), sidePad = Math.round(petW * PAD.side);
+    var hop = pet.actions && pet.actions.hop;
+    var topRatio = Math.max(PAD.top, hop && hop.height ? hop.height + 0.04 : PAD.top);
+    var topPad = Math.round(petH * topRatio), botPad = Math.round(petH * PAD.bottom), sidePad = Math.round(petW * PAD.side);
     box.w = petW; box.h = petH; box.left = sidePad; box.top = topPad;
     box.winW = petW + sidePad * 2; box.winH = petH + topPad + botPad;
     moveEl.style.left = box.left + 'px'; moveEl.style.top = box.top + 'px';
@@ -312,7 +323,15 @@
   // ---------- reactions ----------
   function react(type) {
     if (acting) return;
-    if (type === 'hop') { anim.hopStart = now(); if (canBlink) happy(520); }
+    if (type === 'hop') {
+      var hop = pet.actions && pet.actions.hop;
+      playAction('hop');
+      anim.hopStart = now();
+      anim.hopDur = hop && hop.count && hop.fps ? hop.count * 1000 / hop.fps : 640;
+      anim.hopLoops = hop && hop.loops ? hop.loops : 1;
+      anim.hopHeight = hop && hop.height ? hop.height : 0.20;
+      if (canBlink) happy(520);
+    }
     else if (type === 'roll') { playAction('roll'); }
   }
   function wobble(amp) { anim.wobStart = now(); anim.wobAmp = clamp(amp, 0, 1.2); }
@@ -374,22 +393,30 @@
     if (acting) return;
     if (reg === 'ear-l') { say(); kickEar(0); }
     else if (reg === 'ear-r') { say(); kickEar(1); }
-    else if (reg === 'face') { say(); nodHead(); if (canBlink) { happy(560); blink(); } }
-    else if (reg === 'hand-l' || reg === 'hand-r') playAction('roll'); // playAction says the fixed roll line
+    else if (reg === 'face') {
+      say();
+      if (pet.actions && pet.actions.hop) react('hop');
+      else { nodHead(); if (canBlink) { happy(560); blink(); } }
+    }
+    else if (reg === 'hand-l' || reg === 'hand-r') {
+      if (pet.actions && pet.actions.roll) playAction('roll'); // playAction says the fixed roll line
+      else { say(); react('hop'); }
+    }
     else { say(); react('hop'); } // body / feet / fallback
   }
 
   // ---------- animation ----------
   var anim = {
-    dragging: false, dragRot: 0, hopStart: -1, wobStart: -1, wobAmp: 0,
+    dragging: false, dragRot: 0, hopStart: -1, hopDur: 640, hopLoops: 1, hopHeight: 0.20, wobStart: -1, wobAmp: 0,
     earKick: [-1, -1], nodStart: -1,
     look: { dx: 0, dy: 0 }, lookCur: { x: 0, y: 0 },
     walking: false, walkDir: 1, walkPhase: 0, facing: 1
   };
 
-  function hopOffset(age, petH) {
-    var dur = 640, tn = age / dur; if (tn >= 1) return null;
-    var H = petH * 0.20, ty = 0, sx = 1, sy = 1;
+  function hopOffset(age, petH, dur, loops, height) {
+    var total = dur * loops; if (age >= total) return null;
+    var tn = (age % dur) / dur;
+    var H = petH * (height || 0.20), ty = 0, sx = 1, sy = 1;
     if (tn < 0.18) { var a = tn / 0.18; sy = 1 - 0.12 * a; sx = 1 + 0.10 * a; }
     else if (tn < 0.5) { var b = easeOut((tn - 0.18) / 0.32); ty = -H * b; sy = 1 + 0.07 * b; sx = 1 - 0.05 * b; }
     else if (tn < 0.72) { var c = (tn - 0.5) / 0.22; ty = -H * (1 - c); }
@@ -426,7 +453,7 @@
     }
 
     if (anim.hopStart >= 0) {
-      var h = hopOffset(now() - anim.hopStart, petH);
+      var h = hopOffset(now() - anim.hopStart, petH, anim.hopDur, anim.hopLoops, anim.hopHeight);
       if (h) { ty += h.ty; sx *= h.sx; sy *= h.sy; } else anim.hopStart = -1;
     }
     if (anim.wobStart >= 0) {

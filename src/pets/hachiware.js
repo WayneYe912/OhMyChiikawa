@@ -44,6 +44,10 @@
       zh: ['完全搞不懂～', '嘿嘿嘿嘿～', '什么什么！', '没问题的！'],
       en: ['I don\'t know~', 'Hehehehe~', 'What?', 'No problem!'],
       ja: ['全然わかんない～', 'へへへへ～', 'なになに！', '大丈夫だよ！']
+    },
+    walk: { base: 'images/hachiware_run/hachiware_run_', count: 11, pad: 2, ext: '.png', start: 1, fps: 9 },
+    actions: {
+      hop: { base: 'images/hachiware_jump/hachiware_jump_', count: 4, pad: 2, ext: '.png', start: 1, fps: 8, loops: 4, scale: 1, height: 0.45 }
     }
   };
   var api = (typeof window !== 'undefined') ? window : globalThis;
