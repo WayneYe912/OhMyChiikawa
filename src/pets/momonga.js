@@ -1,7 +1,7 @@
 /*
- * Momonga (莫莫伽) — front-standing pose. It uses a transparent body layer plus
- * two clipped ear overlays, so it can blink and wiggle each ear like the other
- * front-facing pets.
+ * Momonga (莫莫伽) — front-standing pose. Its ears are clipped at the open root:
+ * each moving layer keeps the complete outer black outline and ear interior,
+ * while the white face and blue tail remain exclusively on the body layer.
  *
  * Artwork is processed from src/images/momonga.jpeg (yellow background removed,
  * ears cropped into transparent overlay layers) and ships encrypted in
@@ -19,13 +19,15 @@
     natural: { w: 1080, h: 1080 },
     renderScale: 0.82,
     articulated: true,
-    animateEars: false,
+    animateEars: true,
+    // Keep both open ear roots seated on the head while the tips wiggle.
+    earMotion: { mode: 'skew', sway: 2.0, perk: 5, walk: 1.2, kick: 12 },
     body: 'images/momonga/body.png',
     ears: [
       { src: 'images/momonga/ear-left.png', side: 'l',
-        box: { x: 0.09259, y: 0.04167, w: 0.28704, h: 0.28704 }, origin: { x: 0.68, y: 0.90 } },
+        box: { x: 0.175926, y: 0.082407, w: 0.195370, h: 0.230556 }, origin: { x: 0.665877, y: 0.887550 } },
       { src: 'images/momonga/ear-right.png', side: 'r',
-        box: { x: 0.47222, y: 0.02315, w: 0.29630, h: 0.30556 }, origin: { x: 0.24, y: 0.88 } }
+        box: { x: 0.563889, y: 0.084259, w: 0.192593, h: 0.232407 }, origin: { x: 0.372596, y: 0.878486 } }
     ],
     eyes: [
       { x: 0.27407, y: 0.42130, w: 0.11667, h: 0.11111 },

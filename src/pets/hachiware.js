@@ -3,9 +3,9 @@
  * chiikawa it ships as a body layer plus two ear layers and CSS eyelids, so it
  * can blink and wiggle each ear on its own. It has no hand-rolling action.
  *
- * The blue "ears" are one connected fringe rather than two separate appendages,
- * so the body layer keeps the WHOLE character (blue included) and the ear layers
- * are static overlays. Ear motion is disabled for this pet; blink lids remain.
+ * Each pointed ear is cut away from the connected blue fringe at its root. The
+ * moving layers contain the blue ear and its full outer black outline only;
+ * the lower fringe and face stay on the body layer so they never move with it.
  *
  * Artwork is sliced from src/images/hachiware.png (baked light-grey background
  * removed via the enclosing outline, ears cut into their own transparent layers)
@@ -25,13 +25,16 @@
     // tower over the tall usagi at the same Size setting.
     renderScale: 0.8,
     articulated: true,
-    animateEars: false,
+    animateEars: true,
+    // A shear bends the pointed ears while keeping their diagonal roots joined
+    // to the connected blue fringe (a plain rotation would open a visible gap).
+    earMotion: { mode: 'skew', sway: 2.0, perk: 5, walk: 1.2, kick: 12 },
     body: 'images/hachiware/body.png',
     ears: [
       { src: 'images/hachiware/ear-left.png',  side: 'l',
-        box: { x: 0.10833, y: 0.01699, w: 0.31944, h: 0.23248 }, origin: { x: 0.43043, y: 1.0 } },
+        box: { x: 0.129167, y: 0.012739, w: 0.270833, h: 0.188960 }, origin: { x: 0.497436, y: 0.766854 } },
       { src: 'images/hachiware/ear-right.png', side: 'r',
-        box: { x: 0.42778, y: 0.00212, w: 0.43333, h: 0.24841 }, origin: { x: 0.52244, y: 1.0 } }
+        box: { x: 0.590278, y: 0.000000, w: 0.262500, h: 0.193206 }, origin: { x: 0.489418, y: 0.791209 } }
     ],
     eyes: [
       { x: 0.21250, y: 0.34926, w: 0.13333, h: 0.10722 },
