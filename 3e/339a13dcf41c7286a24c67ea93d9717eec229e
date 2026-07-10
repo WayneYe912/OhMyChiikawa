@@ -1,0 +1,31 @@
+src/ear-hit.js
+  s_b2a78b4b713a9c::t_57ea5aa81b5111 1-46
+src/index.html
+  s_b2a78b4b713a9c::t_a27008ff6cb10c 33
+src/pets/hachiware.js
+  s_b2a78b4b713a9c::t_739e70496d3f69 6-8,28-31,35,37
+src/pets/momonga.js
+  s_b2a78b4b713a9c::t_a0ab3747310670 2-4,22-24,28,30
+src/renderer.js
+  s_b2a78b4b713a9c::t_7880b4223d2497 25,40,50-51,76-83,107-117,396-403,407-409,414-418,422-423,439,509-513,516-518,521-529
+tests/ear-animation.test.js
+  s_b2a78b4b713a9c::t_c0642a373dda0e 6,9-15,17-20,23-226,228-231,233
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3e339a13dcf41c7286a24c67ea93d9717eec229e",
+  "prompts": {},
+  "sessions": {
+    "s_b2a78b4b713a9c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4a06-a77b-7b71-964a-b952de6f2e43",
+        "model": "unknown"
+      },
+      "human_author": "WayneYe <wayneye@foxmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
