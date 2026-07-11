@@ -223,7 +223,11 @@
     var a = pet.actions && pet.actions[name];
     if (!a || acting || anim.dragging || running) return;
     acting = true; document.body.classList.remove('is-blink');
-    if (name === 'roll') say(ROLL_LINE, 2000);   // the rabbit chants while rolling its paws
+    if (name === 'roll') {
+      var rollSpeech = a.speech;
+      if (rollSpeech && typeof rollSpeech !== 'string') rollSpeech = rollSpeech[lang] || rollSpeech.zh;
+      say(rollSpeech || ROLL_LINE, 2000);
+    }
     if (isSeq) { // play the pet's own frames in place -> seamless (idle frame == frame 0)
       var n = pet.frames.count, total = n * (a.loops || 1), i = 0, fps = a.fps || 10, idleIdx = pet.idle || 0;
       (function step() {
