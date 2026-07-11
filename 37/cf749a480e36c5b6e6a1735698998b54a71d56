@@ -1,0 +1,32 @@
+package.json
+  h_6507e902a56408 3
+src/pets/momonga.js
+  s_cf8b32379a4de1::t_ea65b131ca6db0 6-9,41-49
+src/renderer.js
+  s_cf8b32379a4de1::t_5cf0f5892ec60a 226-230
+tests/momonga-roll.test.js
+  s_cf8b32379a4de1::t_1dded2d7a441e2 1-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "37cf749a480e36c5b6e6a1735698998b54a71d56",
+  "prompts": {},
+  "humans": {
+    "h_6507e902a56408": {
+      "author": "WayneYe <wayneye@foxmail.com>"
+    }
+  },
+  "sessions": {
+    "s_cf8b32379a4de1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5121-627c-7fd0-9d8f-f2b31ab9ed1c",
+        "model": "unknown"
+      },
+      "human_author": "WayneYe <wayneye@foxmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
