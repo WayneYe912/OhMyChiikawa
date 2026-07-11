@@ -22,6 +22,7 @@
   // vault isn't present (raw dev tree / browser preview), the plain file path.
   var assetURL = function (p) { return (window.petAPI && window.petAPI.asset && window.petAPI.asset(p)) || p; };
   var geometry = window.PetGeometry;
+  var earHit = window.PetEarHit;
 
   var SCALES = { small: 150, medium: 200, large: 270 };
   var PAD = { top: 0.30, bottom: 0.06, side: 0.24 };
@@ -36,6 +37,7 @@
   var isLayered = pet.kind === 'image-layered';
   var isSeq = pet.kind === 'image-sequence';
   var canBlink = isLayered || isSeq;
+  var earMotion = pet.earMotion || {};
 
   // ---------- DOM ----------
   var moveEl = document.getElementById('layer-move');
@@ -45,7 +47,8 @@
   var speechTextEl = speechEl && speechEl.querySelector('.speech-text');
   document.body.classList.add('kind-image');
 
-  var ears = [];               // layered ear refs {el, sign}
+  var earParts = [];           // every layered ear, including its alpha hit mask
+  var ears = [];               // animated subset of earParts
   var seqImg = null, seqFrames = [];   // image-sequence pet (one img, swap src)
   var hitCtx = null, hitOK = false, natW = 1, natH = 1;
 
@@ -70,7 +73,14 @@
     wrap.appendChild(mkImg(pet.body, 'part body', null, null));
     pet.ears.forEach(function (e) {
       var el = mkImg(e.src, 'part ear ear-' + e.side, e.box, e.origin);
-      if (pet.animateEars !== false) ears.push({ el: el, sign: e.side === 'l' ? 1 : -1 });
+      var ref = {
+        el: el, side: e.side, sign: e.side === 'l' ? 1 : -1,
+        box: e.box, origin: e.origin || { x: 0.5, y: 0.5 },
+        hitCtx: null, hitW: 0, hitH: 0, hitOK: false,
+        angle: 0, skew: 0, kickAt: -1
+      };
+      earParts.push(ref);
+      if (pet.animateEars !== false) ears.push(ref);
       wrap.appendChild(el);
     });
     pet.eyes.forEach(function (e, i) {
@@ -94,6 +104,17 @@
         });
         cx.getImageData(0, 0, 1, 1); hitCtx = cx; hitOK = true;
       } catch (e) { hitOK = false; }
+      // Each ear gets its own alpha canvas. A rectangular crop can overlap the
+      // face or tail, but only opaque ear artwork is allowed to react as an ear.
+      earParts.forEach(function (ear) {
+        try {
+          var ec = document.createElement('canvas');
+          ec.width = ear.el.naturalWidth; ec.height = ear.el.naturalHeight;
+          var ex = ec.getContext('2d', { willReadFrequently: true });
+          ex.drawImage(ear.el, 0, 0); ex.getImageData(0, 0, 1, 1);
+          ear.hitCtx = ex; ear.hitW = ec.width; ear.hitH = ec.height; ear.hitOK = true;
+        } catch (e) { ear.hitOK = false; }
+      });
     }
   } else if (isSeq) { // single image, swap src through frames (seamless idle<->action)
     natW = pet.natural.w; natH = pet.natural.h;
@@ -372,27 +393,34 @@
   }
 
   // ---------- part-aware click reactions ----------
-  // Which body part is under (cx,cy)? Only the layered usagi has real part
-  // geometry; everything else falls back to a whole-body reaction.
+  // Map through the current ear transform and sample its real alpha. Transparent
+  // crop pixels (including nearby face/tail artwork) are never ear hit targets.
+  function earRegionAt(u, v) {
+    return earHit ? earHit.regionAt(earParts, u, v, 20) : null;
+  }
+
+  // Which body part is under (cx,cy)? Layered pets use pixel-accurate ears;
+  // everything else falls back to a whole-body reaction.
   function regionAt(cx, cy) {
     if (!overPet(cx, cy)) return null;
-    if (!isLayered || !pet.ears) return 'body';
     var u = (cx - box.left) / box.w, v = (cy - box.top) / box.h;
-    for (var i = 0; i < pet.ears.length; i++) {
-      var b = pet.ears[i].box;
-      if (u >= b.x && u <= b.x + b.w && v >= b.y && v <= b.y + b.h)
-        return pet.ears[i].side === 'l' ? 'ear-l' : 'ear-r';
-    }
+    if (!isLayered || !pet.ears) return 'body';
+    var earRegion = earRegionAt(u, v);
+    if (earRegion) return earRegion;
     if (v >= 0.64 && v <= 0.84) { if (u <= 0.22) return 'hand-l'; if (u >= 0.78) return 'hand-r'; } // arm nubs
     if (v >= 0.34 && v <= 0.62 && u >= 0.20 && u <= 0.80) return 'face';
     return 'body';
   }
-  function kickEar(i) { if (i >= 0 && i < anim.earKick.length) anim.earKick[i] = now(); } // wiggle one ear
+  function kickEar(side) {
+    for (var i = 0; i < ears.length; i++) {
+      if (ears[i].side === side) { ears[i].kickAt = now(); return; }
+    }
+  }
   function nodHead() { anim.nodStart = now(); }
   function reactRegion(reg) {
     if (acting) return;
-    if (reg === 'ear-l') { say(); kickEar(0); }
-    else if (reg === 'ear-r') { say(); kickEar(1); }
+    if (reg === 'ear-l') { say(); kickEar('l'); }
+    else if (reg === 'ear-r') { say(); kickEar('r'); }
     else if (reg === 'face') {
       say();
       if (pet.actions && pet.actions.hop) react('hop');
@@ -408,7 +436,7 @@
   // ---------- animation ----------
   var anim = {
     dragging: false, dragRot: 0, hopStart: -1, hopDur: 640, hopLoops: 1, hopHeight: 0.20, wobStart: -1, wobAmp: 0,
-    earKick: [-1, -1], nodStart: -1,
+    nodStart: -1,
     look: { dx: 0, dy: 0 }, lookCur: { x: 0, y: 0 },
     walking: false, walkDir: 1, walkPhase: 0, facing: 1
   };
@@ -478,18 +506,28 @@
 
     // layered ear motion: gentle independent sway + outward perk when happy
     if (ears.length) {
-      var perk = happyNow() ? 1 : 0, wk = anim.walking ? Math.sin(anim.walkPhase) * 1.5 : 0;
+      var perk = happyNow() ? 1 : 0, wk = anim.walking ? Math.sin(anim.walkPhase) : 0;
+      var swayAmp = earMotion.sway == null ? 2.6 : earMotion.sway;
+      var perkAmp = earMotion.perk == null ? 7 : earMotion.perk;
+      var walkAmp = earMotion.walk == null ? 1.5 : earMotion.walk;
+      var kickAmp = earMotion.kick == null ? 18 : earMotion.kick;
       for (var i = 0; i < ears.length; i++) {
         var s = ears[i].sign;
-        var swayDeg = Math.sin(t * 1.7 + i * 0.7) * 2.6 * s;
-        var rotE = swayDeg + perk * 7 * s + wk * s;
-        var ek = anim.earKick[i];                       // single-ear wiggle on ear click
+        var swayDeg = Math.sin(t * 1.7 + i * 0.7) * swayAmp * s;
+        var rotE = swayDeg + perk * perkAmp * s + wk * walkAmp * s;
+        var ek = ears[i].kickAt;                        // single-ear wiggle on ear click
         if (ek >= 0) {
           var ekAge = (now() - ek) / 1000;
-          if (ekAge > 0.7) anim.earKick[i] = -1;
-          else rotE += Math.exp(-5 * ekAge) * Math.sin(ekAge * 42) * 18 * s;
+          if (ekAge > 0.7) ears[i].kickAt = -1;
+          else rotE += Math.exp(-5 * ekAge) * Math.sin(ekAge * 42) * kickAmp * s;
         }
-        ears[i].el.style.transform = 'rotate(' + rotE.toFixed(2) + 'deg)';
+        if (earMotion.mode === 'skew') {
+          ears[i].angle = 0; ears[i].skew = rotE;
+          ears[i].el.style.transform = 'skewX(' + rotE.toFixed(2) + 'deg)';
+        } else {
+          ears[i].angle = rotE; ears[i].skew = 0;
+          ears[i].el.style.transform = 'rotate(' + rotE.toFixed(2) + 'deg)';
+        }
       }
     }
     requestAnimationFrame(frame);
