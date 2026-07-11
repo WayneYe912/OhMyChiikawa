@@ -3,6 +3,10 @@
  * each moving layer keeps the complete outer black outline and ear interior,
  * while the white face and blue tail remain exclusively on the body layer.
  *
+ * Double-clicking plays an in-place rolling sequence as a transparent overlay.
+ * Every frame shares one canvas so Momonga and the surrounding droplets stay
+ * centered without changing the desktop pet window size during playback.
+ *
  * Artwork is processed from src/images/momonga.jpeg (yellow background removed,
  * ears cropped into transparent overlay layers) and ships encrypted in
  * src/assets.pak (rebuild with `chiikawa pack`).
@@ -34,6 +38,15 @@
       { x: 0.53519, y: 0.42130, w: 0.11667, h: 0.11111 }
     ],
     lid: 'rgb(255,255,255)',
+    // Match Usagi's 11 fps, two-loop double-click reaction. The wider source
+    // canvas includes the detached droplets; 1.2x fills Momonga's padded window.
+    actions: {
+      roll: {
+        base: 'images/momonga_rolling/momonga_rolling_', count: 11, pad: 2, ext: '.png', start: 1,
+        fps: 11, loops: 2, scale: 1.2,
+        speech: { zh: '不要！不要！', en: 'No! No!', ja: 'やだ！やだ！' }
+      }
+    },
     speech: {
       zh: ['哼哼～', '诶嘿嘿', '可爱吧？', '我也要！'],
       en: ['Hehe~', 'Ehehe', 'Cute, right?', 'Me too!'],
