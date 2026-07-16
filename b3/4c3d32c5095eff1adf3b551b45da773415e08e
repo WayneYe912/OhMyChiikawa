@@ -1,0 +1,35 @@
+README.en.md
+  s_41f487a86c1a46::t_faaf572c26e13b 102-129
+README.ja.md
+  s_41f487a86c1a46::t_05fdcc2bc0afdd 102-129
+README.md
+  s_41f487a86c1a46::t_cf98d697722ae9 102-129
+codex_pet/install-ohmychiikawa-pets/assets/manifest.json
+  s_41f487a86c1a46::t_734d1ba95937cc 31-32,42-43,53-54
+codex_pet/install-ohmychiikawa-pets/assets/pets/ohmychiikawa-chiikawa/SHA256SUMS
+  s_41f487a86c1a46::t_28a36d8ede686e 3
+codex_pet/install-ohmychiikawa-pets/assets/pets/ohmychiikawa-hachiware/SHA256SUMS
+  s_41f487a86c1a46::t_3d305bce8edd23 3
+codex_pet/install-ohmychiikawa-pets/assets/pets/ohmychiikawa-momonga/SHA256SUMS
+  s_41f487a86c1a46::t_597b90976553d1 3
+codex_pet/tools/build_pets.py
+  s_41f487a86c1a46::t_281e95a25d249d 38,74,87,100,330-344
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b34c3d32c5095eff1adf3b551b45da773415e08e",
+  "prompts": {},
+  "sessions": {
+    "s_41f487a86c1a46": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f69c6-0cb8-7ea3-9ce4-748dc235412c",
+        "model": "unknown"
+      },
+      "human_author": "WayneYe <wayneye@foxmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
