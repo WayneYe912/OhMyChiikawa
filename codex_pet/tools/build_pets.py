@@ -35,7 +35,7 @@ class PetSpec:
     ears: tuple[tuple[str, float, float, float, float], ...]
     walk: tuple[str, ...]
     action: tuple[str, ...]
-    walk_source_faces_right: bool = True
+    walk_source_faces_right: bool
 
     @property
     def install_id(self) -> str:
@@ -71,6 +71,7 @@ PET_SPECS = (
         ),
         walk=numbered_paths("images/chiikawa_run/chiikawa_run_", 2, 12),
         action=numbered_paths("images/chiikawa_run/chiikawa_run_", 2, 12),
+        walk_source_faces_right=False,
     ),
     PetSpec(
         pet_id="hachiware",
@@ -83,6 +84,7 @@ PET_SPECS = (
         ),
         walk=numbered_paths("images/hachiware_run/hachiware_run_", 1, 11),
         action=numbered_paths("images/hachiware_jump/hachiware_jump_", 1, 4),
+        walk_source_faces_right=False,
     ),
     PetSpec(
         pet_id="momonga",
@@ -95,6 +97,7 @@ PET_SPECS = (
         ),
         walk=(),
         action=numbered_paths("images/momonga_rolling/momonga_rolling_", 1, 11),
+        walk_source_faces_right=False,
     ),
 )
 
@@ -324,9 +327,21 @@ def build_rows(bundle: dict[str, bytes], spec: PetSpec) -> list[list[Image.Image
             flip=not spec.walk_source_faces_right,
         )
     else:
-        running_right = fallback_walk_frames(base, 8)
-        running_left = fallback_walk_frames(base, 8, flip=True)
-        running = fallback_walk_frames(base, 6)
+        running_right = fallback_walk_frames(
+            base,
+            8,
+            flip=not spec.walk_source_faces_right,
+        )
+        running_left = fallback_walk_frames(
+            base,
+            8,
+            flip=spec.walk_source_faces_right,
+        )
+        running = fallback_walk_frames(
+            base,
+            6,
+            flip=not spec.walk_source_faces_right,
+        )
 
     waving = render_sequence(action_images or walk_images or [standing], 4)
     review = render_sequence(action_images or walk_images or [standing], 6)

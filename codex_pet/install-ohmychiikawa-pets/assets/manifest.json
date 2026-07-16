@@ -28,8 +28,8 @@
       "width": 1536,
       "height": 1872,
       "assetPath": "assets/pets/ohmychiikawa-chiikawa",
-      "spritesheetSha256": "693ac1698d45ddaa17eb8cc261508803f4b2ea4657633683045cf24ef1efc08e",
-      "spritesheetBytes": 729250
+      "spritesheetSha256": "fd11aec1567e16f7982bbde7e37eac293d71936c1489a252d6b25f060dd22511",
+      "spritesheetBytes": 839994
     },
     {
       "id": "hachiware",
@@ -39,8 +39,8 @@
       "width": 1536,
       "height": 1872,
       "assetPath": "assets/pets/ohmychiikawa-hachiware",
-      "spritesheetSha256": "e8d0c4a830ca5d68d3bcdb8094655061c135369f8b4163d4f55a8d02782a4ee6",
-      "spritesheetBytes": 821580
+      "spritesheetSha256": "a428853417b4966ca060732fa076008dd6cbfb8f4d503f83a764f7dcf526e699",
+      "spritesheetBytes": 821312
     },
     {
       "id": "momonga",
@@ -50,8 +50,8 @@
       "width": 1536,
       "height": 1872,
       "assetPath": "assets/pets/ohmychiikawa-momonga",
-      "spritesheetSha256": "54ad9e4737197d9695b1985e6e11513ef991b5e31955d1e2c0e15b6d01d07e3d",
-      "spritesheetBytes": 744690
+      "spritesheetSha256": "61148e90ce417b0f5d74cb37b79cd03863b4ac6eb27c91f90de26f8fed1b199c",
+      "spritesheetBytes": 745086
     }
   ]
 }
