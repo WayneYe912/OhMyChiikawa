@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "projectVersion": "0.0.5",
+  "spriteFormat": {
+    "version": 1,
+    "columns": 8,
+    "rows": 9,
+    "cellWidth": 192,
+    "cellHeight": 208
+  },
+  "pets": [
+    {
+      "id": "usagi",
+      "installId": "ohmychiikawa-usagi",
+      "displayName": "Usagi · OhMyChiikawa",
+      "spriteVersionNumber": 1,
+      "width": 1536,
+      "height": 1872,
+      "assetPath": "assets/pets/ohmychiikawa-usagi",
+      "spritesheetSha256": "c8db79962ee132f60513042464300690cf043f53a125d1940b7884615483cb87",
+      "spritesheetBytes": 824818
+    },
+    {
+      "id": "chiikawa",
+      "installId": "ohmychiikawa-chiikawa",
+      "displayName": "Chiikawa · OhMyChiikawa",
+      "spriteVersionNumber": 1,
+      "width": 1536,
+      "height": 1872,
+      "assetPath": "assets/pets/ohmychiikawa-chiikawa",
+      "spritesheetSha256": "693ac1698d45ddaa17eb8cc261508803f4b2ea4657633683045cf24ef1efc08e",
+      "spritesheetBytes": 729250
+    },
+    {
+      "id": "hachiware",
+      "installId": "ohmychiikawa-hachiware",
+      "displayName": "Hachiware · OhMyChiikawa",
+      "spriteVersionNumber": 1,
+      "width": 1536,
+      "height": 1872,
+      "assetPath": "assets/pets/ohmychiikawa-hachiware",
+      "spritesheetSha256": "e8d0c4a830ca5d68d3bcdb8094655061c135369f8b4163d4f55a8d02782a4ee6",
+      "spritesheetBytes": 821580
+    },
+    {
+      "id": "momonga",
+      "installId": "ohmychiikawa-momonga",
+      "displayName": "Momonga · OhMyChiikawa",
+      "spriteVersionNumber": 1,
+      "width": 1536,
+      "height": 1872,
+      "assetPath": "assets/pets/ohmychiikawa-momonga",
+      "spritesheetSha256": "54ad9e4737197d9695b1985e6e11513ef991b5e31955d1e2c0e15b6d01d07e3d",
+      "spritesheetBytes": 744690
+    }
+  ]
+}

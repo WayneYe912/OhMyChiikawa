@@ -1,0 +1,4 @@
+interface:
+  display_name: "OhMyChiikawa Pets"
+  short_description: "Install four OhMyChiikawa pet skins"
+  default_prompt: "Use $install-ohmychiikawa-pets to install an OhMyChiikawa pet skin into my local Codex setup."
