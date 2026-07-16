@@ -99,6 +99,34 @@ node chiikawa.js --size small
 
 The script checks local dependencies before launch. If dependencies are missing, it explains what is happening and tries to run `npm install`. If npm is unavailable or installation fails, the terminal output gives the next manual step.
 
+## Install as Codex Pets
+
+If you use the ChatGPT/Codex desktop app or Codex CLI, you can install Codex pet skins for all four characters directly from this repository's `main` branch.
+
+Install all four pets:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WayneYe912/OhMyChiikawa/main/codex_pet/install-ohmychiikawa-pets/scripts/install.sh \
+  | bash -s -- all --remote
+```
+
+Install a single pet (Usagi in this example):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WayneYe912/OhMyChiikawa/main/codex_pet/install-ohmychiikawa-pets/scripts/install.sh \
+  | bash -s -- usagi --remote
+```
+
+Replace `usagi` with `chiikawa`, `hachiware`, or `momonga` as needed. The installer verifies the SHA-256 checksums of downloaded files. Reinstalling the same character replaces the current version and moves the previous version to a backup directory that Codex does not scan.
+
+After installation, open Settings → Pets, select Refresh, and choose the new pet. Enter `/pet` to wake the floating desktop pet. In Codex CLI, use `/pets` to open the pet picker.
+
+You can also give the following Skill URL directly to Codex and ask it to follow the installation instructions:
+
+```text
+https://raw.githubusercontent.com/WayneYe912/OhMyChiikawa/main/codex_pet/install-ohmychiikawa-pets/SKILL.md
+```
+
 ## Basic Usage
 
 | Action | Result |

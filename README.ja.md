@@ -99,6 +99,34 @@ node chiikawa.js --size small
 
 スクリプトは起動前にローカル依存関係を確認します。依存が不足している場合は状況を説明し、`npm install` の実行を試みます。npm がない場合や依存関係のインストールに失敗した場合は、ターミナルに次の手順が表示されます。
 
+## Codex ペットとしてインストール
+
+ChatGPT/Codex デスクトップアプリまたは Codex CLI を使用している場合は、このリポジトリの `main` ブランチから 4 キャラクターの Codex ペットスキンを直接インストールできます。
+
+4 種類すべてをインストール：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WayneYe912/OhMyChiikawa/main/codex_pet/install-ohmychiikawa-pets/scripts/install.sh \
+  | bash -s -- all --remote
+```
+
+1 種類だけをインストール（以下はうさぎの例）：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WayneYe912/OhMyChiikawa/main/codex_pet/install-ohmychiikawa-pets/scripts/install.sh \
+  | bash -s -- usagi --remote
+```
+
+`usagi` は必要に応じて `chiikawa`、`hachiware`、`momonga` に置き換えられます。インストーラはダウンロードしたファイルの SHA-256 チェックサムを検証します。同じキャラクターを再インストールすると現在のバージョンが置き換えられ、以前のバージョンは Codex がスキャンしないバックアップディレクトリへ移動されます。
+
+インストール後、Settings → Pets を開き、Refresh を選択して新しいペットを選びます。`/pet` を入力するとデスクトップのフローティングペットを呼び出せます。Codex CLI では `/pets` でペットピッカーを開けます。
+
+次の Skill URL を Codex に直接渡し、インストール手順に従うよう依頼することもできます。
+
+```text
+https://raw.githubusercontent.com/WayneYe912/OhMyChiikawa/main/codex_pet/install-ohmychiikawa-pets/SKILL.md
+```
+
 ## 基本操作
 
 | 操作 | 結果 |

@@ -99,6 +99,34 @@ node chiikawa.js --size small
 
 脚本会先检查本地依赖；如果依赖缺失，会提示并尝试自动执行 `npm install`。如果本机没有 npm，或依赖安装失败，终端会给出对应的处理提示。
 
+## 安装为 Codex 宠物
+
+如果你使用 ChatGPT/Codex 桌面应用或 Codex CLI，可以直接从本仓库的 `main` 分支远程安装四个角色的 Codex 宠物皮肤。
+
+安装全部四个宠物：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WayneYe912/OhMyChiikawa/main/codex_pet/install-ohmychiikawa-pets/scripts/install.sh \
+  | bash -s -- all --remote
+```
+
+只安装一个宠物（下面以乌萨奇为例）：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/WayneYe912/OhMyChiikawa/main/codex_pet/install-ohmychiikawa-pets/scripts/install.sh \
+  | bash -s -- usagi --remote
+```
+
+可以将 `usagi` 替换为 `chiikawa`、`hachiware` 或 `momonga`。安装器会验证下载文件的 SHA-256 校验和；再次安装同一角色时会替换现有版本，并将旧版本移到不会被 Codex 扫描的备份目录。
+
+安装完成后，打开 Settings → Pets，点击 Refresh 并选择新宠物；输入 `/pet` 可以唤醒桌面悬浮宠物。在 Codex CLI 中使用 `/pets` 打开宠物选择器。
+
+也可以把下面的 Skill URL 直接交给 Codex，让它按照说明完成安装：
+
+```text
+https://raw.githubusercontent.com/WayneYe912/OhMyChiikawa/main/codex_pet/install-ohmychiikawa-pets/SKILL.md
+```
+
 ## 基本用法
 
 | 操作 | 效果 |
